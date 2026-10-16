@@ -225,6 +225,19 @@ html{scroll-behavior:smooth}
 .mk-end .mk-ctas{justify-content:center}
 .mk-btn:focus-visible,.mk a:focus-visible{outline:3px solid var(--mk-laton);outline-offset:3px}
 @media (min-width:900px){.mk-g3{grid-template-columns:repeat(3,1fr)}}
+/* Pantallas: cada sección ocupa la pantalla y la flecha lleva a la siguiente */
+
+.mk-screen{min-height:100svh;display:flex;flex-direction:column;justify-content:center;position:relative;scroll-snap-align:start;padding-bottom:88px}
+.mk-hero.mk-screen{display:grid;min-height:calc(100svh - 70px);align-content:center}
+.mk-hero.mk-screen{scroll-snap-align:none}
+body{margin:0}
+@media (max-width:599px){.mk-hero .mk-phone{display:none}}
+.mk-end .mk-ctas{margin-top:28px}
+.mk-next{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:52px;height:52px;border-radius:99px;display:grid;place-items:center;color:var(--mk-laton);box-shadow:inset 0 0 0 1.5px rgba(201,154,69,.6);text-decoration:none;animation:mk-bob 2.2s ease-in-out infinite}
+.mk-next svg{width:26px;height:26px}
+.mk-next:hover{background:rgba(201,154,69,.12)}
+@keyframes mk-bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+@media (prefers-reduced-motion:reduce){.mk-next{animation:none}}
 #demo{scroll-margin-top:12px}
 </style>
 
@@ -235,18 +248,11 @@ html{scroll-behavior:smooth}
       <a class="mk-back" href="../">← Volver al inicio</a>
     </header>
 
-    <section class="mk-hero" aria-labelledby="mk-h1">
+    <section class="mk-hero mk-screen" id="mk-s1" aria-labelledby="mk-h1">
       <div>
         <div class="mk-eyebrow">Software para negocios de servicios</div>
         <h1 id="mk-h1">Tu negocio en una app con tu nombre</h1>
         <p class="mk-lead">Agenda, cobros, clientes, inventario y caja en un solo lugar. Cada persona entra directo a su trabajo, desde el celular o el PC, y tus clientes reservan solos.</p>
-        <div class="mk-ctas">
-          <a class="mk-btn mk-btn-main" href="#demo">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Ver la demo
-          </a>
-          <a class="mk-btn mk-btn-ghost" href="https://wa.me/573165743934?text=Hola%20Monkleys%2C%20quiero%20enterarme%20primero%20del%20software%20para%20negocios" target="_blank" rel="noopener">Quiero enterarme primero</a>
-        </div>
         <p class="mk-note">Está en desarrollo. La demo usa datos de ejemplo y no guarda nada.</p>
       </div>
       <div class="mk-phone" aria-hidden="true">
@@ -257,9 +263,10 @@ html{scroll-behavior:smooth}
         <div class="mk-ph-row"><b>12:00</b><span>Corte clásico</span><em class="mk-tag mk-wait">Confirmada</em></div>
         <div class="mk-ph-btn">+ Agendar cita</div>
       </div>
+      <a class="mk-next" href="#mk-s2" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </section>
 
-    <section class="mk-sec" aria-labelledby="mk-h-ben">
+    <section class="mk-sec mk-screen" id="mk-s2" aria-labelledby="mk-h-ben">
       <h2 id="mk-h-ben">Todo lo del día a día, sin papeles ni cuadernos</h2>
       <p class="mk-sub">Las tareas que más se repiten se hacen en pocos toques, y el estado de cada cita se ve sin abrirla.</p>
       <div class="mk-grid mk-g3">
@@ -270,9 +277,10 @@ html{scroll-behavior:smooth}
         <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><h3>Tus clientes reservan solos</h3><p>Desde su celular eligen servicio, profesional y hora, sin llamarte. También ven o cancelan su cita.</p></article>
         <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a3.5 3.5 0 0 0 3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="7.5" r="1.2" fill="currentColor"/></svg><h3>Con tu marca</h3><p>Tu logo, tus colores y tu tipografía. Tus clientes ven tu app, no la nuestra.</p></article>
       </div>
+      <a class="mk-next" href="#mk-s3" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </section>
 
-    <section class="mk-sec" aria-labelledby="mk-h-roles">
+    <section class="mk-sec mk-screen" id="mk-s3" aria-labelledby="mk-h-roles">
       <h2 id="mk-h-roles">Cada persona ve primero lo suyo</h2>
       <p class="mk-sub">Nadie busca en menús: al abrir la app, cada rol entra directo a su tarea del día.</p>
       <div class="mk-grid">
@@ -281,19 +289,21 @@ html{scroll-behavior:smooth}
         <article class="mk-card"><div class="mk-role">Dueño</div><h3>Cómo va el día</h3><p>Ventas, caja y pendientes en una sola pantalla, estés donde estés.</p></article>
         <article class="mk-card"><div class="mk-role">Tu cliente</div><h3>Reservar y ver su cita</h3><p>Desde su celular, con el nombre y los colores de tu negocio.</p></article>
       </div>
+      <a class="mk-next" href="#mk-s4" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </section>
 
-    <section class="mk-sec" aria-labelledby="mk-h-for">
+    <section class="mk-sec mk-screen" id="mk-s4" aria-labelledby="mk-h-for">
       <h2 id="mk-h-for">Hecha para negocios que agendan y venden</h2>
       <ul class="mk-chips">
         <li>Barberías</li><li>Salones de belleza</li><li>Spas</li><li>Consultorios</li><li>Veterinarias</li><li>Talleres</li>
       </ul>
+      <a class="mk-next" href="#mk-s5" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </section>
 
-    <section class="mk-end" aria-labelledby="mk-h-end">
-      <h2 id="mk-h-end">Pruébala tú mismo</h2>
+    <section class="mk-end mk-screen" id="mk-s5" aria-labelledby="mk-h-end">
+      <h2 id="mk-h-end">Ahora pruébala tú</h2>
       <p class="mk-sub" style="margin-inline:auto">Cambia de rol, de dispositivo y mira cómo se ve con la marca de un negocio de ejemplo.</p>
-      <div class="mk-ctas"><a class="mk-btn mk-btn-main" href="#demo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Ver la demo</a></div>
+      <div class="mk-ctas"><a class="mk-btn mk-btn-main" href="#demo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Probar la demo</a></div>
     </section>
   </div>
 </div>
@@ -892,5 +902,17 @@ render();window.__sp=setTimeout(()=>{S.splash=false;render()},SPLASH_MS());
 })();
 </script>
 
+<script>
+/* Cada vez que la demo entra a la pantalla se reproduce la presentación.
+   Espera a que el scroll se detenga (si no, el render corta el desplazamiento suave)
+   y anula el scrollIntoView del botón durante ese clic para no mover la página. */
+(()=>{const demo=document.getElementById("demo");if(!demo||!("IntersectionObserver" in window))return;
+let inside=false,played=false,t=0;
+const play=()=>{if(!inside||played)return;played=true;const b=document.querySelector("[data-splash]");if(!b)return;
+  const siv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){};try{b.click()}finally{Element.prototype.scrollIntoView=siv}};
+const wait=()=>{clearTimeout(t);t=setTimeout(play,180)};
+addEventListener("scroll",()=>{if(inside&&!played)wait()},{passive:true});
+new IntersectionObserver(es=>{for(const e of es){if(e.isIntersecting){if(!inside){inside=true;played=false;wait()}}else{inside=false;played=false;clearTimeout(t)}}},{rootMargin:"0px 0px -50% 0px",threshold:0}).observe(demo)})();
+</script>
 </body>
 </html>
