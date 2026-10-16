@@ -370,7 +370,7 @@ const noticeList=()=>notices.length?notices.map((n,i)=>`<div class="item" style=
 const PLANS={basico:{n:"Básico",p:59900,inc:["Agenda, ventas, caja e inventario","Usuarios ilimitados","Reserva en línea","Facturación electrónica: adicional"]},medio:{n:"Medio",p:89900,inc:["Todo lo de Básico","Recordatorios por WhatsApp con límite mensual","Reportes avanzados","Facturación electrónica: adicional"]},pro:{n:"Pro",p:129900,inc:["Todo lo de Medio","Más mensajes de WhatsApp","Agente de IA con límite mensual","Facturación electrónica incluida"]},ilimitado:{n:"Ilimitado",p:0,inc:["Todo el sistema, sin pagar nunca","Todas las actualizaciones"]}};
 const PAY={aldia:"Al día",pronto:"Vence pronto",gracia:"En gracia",suspendido:"Suspendido"};
 const S={plan:"medio",pay:"aldia",splash:true,slogan:"Cortes clásicos y modernos en el centro de Medellín",role:"recepcion",view:"inicio",dev:innerWidth<760?"phone":"pc",pal:"indigo",typo:"moderna",square:false,mode:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",
- open:new Set(["cuenta","tema","marca"]),cfg:{booking:true,cash:true},sheet:null,toast:null,wiz:null,saleId:null,cusId:null,q:"",gridPro:"p1",cb:null,client:{logged:false},countDone:null,biz:"Barbería El Bigote",addr:"Cra. 43 #10-25, El Poblado",logo:null,cover:null,theme:"system",city:"Medellín",allAg:{},soc:{wa:"+573001234567",ig:"barberiaelbigote",fb:"",tt:""}};
+ open:new Set(),cfg:{booking:true,cash:true},sheet:null,toast:null,wiz:null,saleId:null,cusId:null,q:"",gridPro:"p1",cb:null,client:{logged:false},countDone:null,biz:"Barbería El Bigote",addr:"Cra. 43 #10-25, El Poblado",logo:null,cover:null,theme:"system",city:"Medellín",allAg:{},soc:{wa:"+573001234567",ig:"barberiaelbigote",fb:"",tt:""}};
 
 const $=s=>document.querySelector(s);
 const digits=t=>(t||"").replace(/\D/g,"");
@@ -846,7 +846,7 @@ document.addEventListener("click",e=>{
  if(d.special!==undefined){const k=$("#sp-k").value;const sp={pro:$("#sp-pro").value,d:$("#sp-d").value,k,h:k==="Horario distinto"?"9:00 a 13:00":""};specials.push(sp);return ok("Día especial guardado",[["Profesional",P(sp.pro).n],["Día",sp.d],["Tipo",k+(sp.h?" · "+sp.h:"")],["Efecto",k==="Horario distinto"?"Solo se ofrecen esas horas":"Sus horas quedan bloqueadas"]])}
  if(d.notice){const n=notices[+d.notice],[k,v]=n.go.split(":");S.sheet=null;S.saleId=null;S.cusId=null;if(k==="cus"){S.view="clientes";S.cusId=v}if(k==="sale"){S.view="cobrar";S.saleId=v}if(k==="view")S.view=v;notices.splice(+d.notice,1);return render()}
  if(d.nread){notices.splice(+d.nread,1);return toast("Marcado como resuelto")}
- if(d.sec){S.open.has(d.sec)?S.open.delete(d.sec):S.open.add(d.sec);return render()}
+ if(d.sec){const was=S.open.has(d.sec);S.open.clear();if(!was)S.open.add(d.sec);return render()} /* D268: un solo desplegable abierto */
  if(d.fake)return toast({logo:"Abriría el selector de imagen",portada:"Abriría el selector de imagen",horario:"Abriría el horario semanal",usuario:"Abriría el formulario de usuario"}[d.fake]);
  if(d.svcform!==undefined){S.svcForm=!S.svcForm;return render()}
  if(d.newsvc!==undefined){const n=$("#ns-n").value.trim(),p=parseInt(($("#ns-p").value||"").replace(/\D/g,""));if(!n){$("#ns-n").focus();return}if(!p){$("#ns-p").focus();return}services.push({id:"s"+Date.now(),n,m:+$("#ns-m").value,p,on:true});S.svcForm=false;const ns=services.at(-1);return ok("Servicio creado",[["Nombre",esc(ns.n)],["Duración",ns.m+" min"],["Precio",money(ns.p)],["Aparece en","Agenda y reserva en línea"]])}
