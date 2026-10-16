@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<title>App para negocios de servicios · MonKleys</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@500;700&family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&family=Nunito:wght@400;700&family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: banco de pruebas. Arriba los controles de la demo (rol, marca, dispositivo); abajo la app, que toma la marca del catálogo real (BrandCatalog.cs) */
+:root{
+  --bg:#e9ecf1; --panel:#ffffff; --fg:#151a22; --muted:#5d6878; --line:#d5dbe3; --focus:#2b59c3;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --shell:"Inter",ui-sans-serif,system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f15;--panel:#151b24;--fg:#e6ebf1;--muted:#97a3b3;--line:#273140;--focus:#8fb0ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b0f15;--panel:#151b24;--fg:#e6ebf1;--muted:#97a3b3;--line:#273140;--focus:#8fb0ff;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--shell)}
+.page{max-width:1240px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.bench{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.bench h1{font-size:18px;margin:0;flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.bench h1 small{font:500 11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ctl>span{font:500 10.5px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font:600 12.5px var(--shell);border:1px solid var(--line);background:transparent;color:var(--fg);padding:6px 10px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--panel);border-color:var(--fg)}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.stage{display:flex;justify-content:center}
+.slice{font:500 11px var(--mono);color:var(--muted);text-align:center;letter-spacing:.04em}
+
+/* ---------- La app (colores y fuentes salen del catálogo de marca) ---------- */
+.app{--a-bg:#fff;--a-surface:#eef2ff;--a-text:#111827;--a-muted:#4b5563;--a-border:#c7d2fe;--a-primary:#4338ca;--a-on:#fff;--a-ok:#166534;--a-err:#b91c1c;--a-warn:#92400e;--r-s:8px;--r-m:12px;--r-l:20px;--f-head:"Inter",sans-serif;--f-body:"Inter",sans-serif;
+  background:var(--a-bg);color:var(--a-text);font-family:var(--f-body);font-size:14.5px;line-height:1.4;border:1px solid var(--line);border-radius:18px;overflow:hidden;width:100%;max-width:1180px;height:min(760px,calc(100vh - 210px));min-height:560px;display:flex;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.app.phone{max-width:390px;border-radius:34px;border:8px solid var(--fg)}
+.app *{font-family:inherit}
+.side{width:212px;flex:none;border-right:1px solid var(--a-border);display:flex;flex-direction:column;padding:14px 10px;gap:4px;background:var(--a-bg)}
+.brand{display:flex;align-items:center;gap:9px;padding:4px 8px 14px}
+.logo{width:34px;height:34px;border-radius:var(--r-s);background:var(--a-primary);color:var(--a-on);display:grid;place-items:center;font:700 14px var(--f-head);flex:none}
+.brand b{font:700 14px var(--f-head);line-height:1.1}
+.brand small{display:block;color:var(--a-muted);font-size:11.5px}
+.nav{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--a-text);padding:9px 10px;border-radius:var(--r-s);cursor:pointer;font-weight:600;text-align:left;font-size:14px}
+.nav:hover{background:var(--a-surface)}
+.nav[aria-current="page"]{background:var(--a-primary);color:var(--a-on)}
+.nav svg{width:18px;height:18px;flex:none}
+.side .who{margin-top:auto;border-top:1px solid var(--a-border);padding:10px 8px 0;font-size:12.5px;color:var(--a-muted)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--a-border);min-height:56px}
+.top h2{font:700 19px var(--f-head);margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bell{position:relative;border:1px solid var(--a-border);background:transparent;color:var(--a-text);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.bell i{position:absolute;top:-3px;right:-3px;background:var(--a-err);color:#fff;font:700 10px var(--f-body);font-style:normal;border-radius:9px;padding:1px 5px}
+.scroll{flex:1;overflow:auto;padding:16px 18px 24px;display:flex;flex-direction:column;gap:14px}
+.tabbar{display:none;border-top:1px solid var(--a-border);background:var(--a-bg)}
+.app.phone .side{display:none}
+.app.phone .tabbar{display:flex}
+.app.phone .top{padding:12px 14px}
+.app.phone .scroll{padding:14px}
+.tab{flex:1;border:0;background:transparent;color:var(--a-muted);padding:8px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer}
+.tab svg{width:21px;height:21px}
+.tab[aria-current="page"]{color:var(--a-primary)}
+
+.card{background:var(--a-bg);border:1px solid var(--a-border);border-radius:var(--r-m);padding:14px}
+.soft{background:var(--a-surface);border-color:transparent}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.grow{flex:1;min-width:0}
+.muted{color:var(--a-muted)}
+.small{font-size:12.5px}
+h3{font:700 16px var(--f-head);margin:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile b{display:block;font:700 22px var(--f-head);font-variant-numeric:tabular-nums}
+.btn{border:0;background:var(--a-primary);color:var(--a-on);font-weight:700;padding:11px 16px;border-radius:var(--r-s);cursor:pointer;font-size:14.5px}
+.btn.ghost{background:transparent;color:var(--a-primary);border:1.5px solid var(--a-primary)}
+.btn.quiet{background:var(--a-surface);color:var(--a-text)}
+.btn.danger{background:transparent;color:var(--a-err);border:1.5px solid var(--a-err)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--a-border);border-radius:var(--r-m);background:var(--a-bg);cursor:pointer;text-align:left;color:var(--a-text);width:100%;font-size:14.5px}
+.item:hover{border-color:var(--a-primary)}
+.item.sel{border-color:var(--a-primary);box-shadow:inset 0 0 0 1px var(--a-primary)}
+.time{font:700 15px var(--f-head);font-variant-numeric:tabular-nums;width:48px;flex:none}
+.chip{font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid currentColor}
+.st-Pendiente{color:var(--a-warn)} .st-Confirmada{color:var(--a-primary)} .st-En{color:var(--a-on);background:var(--a-primary);border-color:var(--a-primary)}
+.st-Completada{color:var(--a-ok)} .st-Cancelada{color:var(--a-muted)} .st-No{color:var(--a-err)} .st-Pagada{color:var(--a-ok)} .st-Por{color:var(--a-warn)}
+.money{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.steps{display:flex;gap:6px}
+.steps i{height:5px;flex:1;border-radius:3px;background:var(--a-border)}
+.steps i.on{background:var(--a-primary)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.slot{border:1.5px solid var(--a-border);background:var(--a-bg);color:var(--a-text);border-radius:var(--r-s);padding:10px 4px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+.slot:hover,.slot.sel{border-color:var(--a-primary);color:var(--a-primary)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:600;color:var(--a-muted)}
+.inp{border:1.5px solid var(--a-border);background:var(--a-bg);color:var(--a-text);border-radius:var(--r-s);padding:10px 12px;font-size:15px;width:100%}
+.inp:focus{border-color:var(--a-primary);outline:none}
+.code{letter-spacing:.5em;text-align:center;font:700 22px var(--f-head)}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:13.5px}
+.check input{margin-top:3px;accent-color:var(--a-primary)}
+
+/* agenda en PC */
+.grid{display:grid;grid-template-columns:52px repeat(var(--cols),minmax(140px,1fr));border:1px solid var(--a-border);border-radius:var(--r-m);overflow:auto;max-height:100%}
+.gh{position:sticky;top:0;background:var(--a-surface);padding:9px 10px;font:700 13.5px var(--f-head);border-bottom:1px solid var(--a-border);z-index:2}
+.gt{font-size:11.5px;color:var(--a-muted);text-align:right;padding-right:6px;font-variant-numeric:tabular-nums}
+.gcol{position:relative;border-left:1px solid var(--a-border);background-image:repeating-linear-gradient(to bottom,transparent 0 43px,var(--a-border) 43px 44px)}
+.blk{position:absolute;left:4px;right:4px;border-radius:var(--r-s);padding:5px 8px;font-size:12px;cursor:pointer;border:0;text-align:left;color:var(--a-text);background:var(--a-surface);border-left:4px solid var(--c);overflow:hidden}
+.blk b{display:block;font-size:12.5px}
+.now{position:absolute;left:0;right:0;height:2px;background:var(--a-err);z-index:1}
+
+/* hoja de detalle */
+.sheet-wrap{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:var(--a-bg);width:100%;max-width:520px;border-radius:var(--r-l) var(--r-l) 0 0;padding:18px;display:flex;flex-direction:column;gap:12px;max-height:88%;overflow:auto}
+.app:not(.phone) .sheet-wrap{align-items:center}
+.app:not(.phone) .sheet{border-radius:var(--r-l)}
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:var(--a-text);color:var(--a-bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:13.5px;z-index:30;white-space:nowrap}
+.foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--a-border)}
+.soc{display:inline-grid;place-items:center;border-radius:50%;border:1.5px solid var(--a-border);color:var(--a-text);background:var(--a-surface);text-decoration:none}.soc:hover{border-color:var(--a-primary);color:var(--a-primary)}
+.cover{border-radius:var(--r-l);padding:22px 18px;color:var(--a-on);background:linear-gradient(135deg,var(--a-primary),color-mix(in srgb,var(--a-primary) 60%,#000));position:relative;overflow:hidden}
+.cover::after{content:"";position:absolute;right:-30px;top:-20px;width:120px;height:200px;transform:rotate(20deg);background:repeating-linear-gradient(-45deg,rgba(255,255,255,.18) 0 10px,transparent 10px 20px);border-radius:60px}
+.cover h3{font-size:24px;color:var(--a-on)}
+.cover .logo{background:var(--a-on);color:var(--a-primary);width:46px;height:46px;font-size:17px;margin-bottom:10px}
+.pill{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600;background:var(--a-surface);padding:4px 9px;border-radius:999px}
+hr.s{border:0;border-top:1px solid var(--a-border);margin:2px 0}
+.acc{border:1px solid var(--a-border);border-radius:var(--r-m);background:var(--a-bg)}
+.acc.open{border-color:var(--a-primary)}
+.acc-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--a-text);padding:13px 14px;text-align:left;cursor:pointer;font-size:14.5px}
+.acc-i{width:28px;height:28px;border-radius:50%;background:var(--a-surface);display:grid;place-items:center;font-weight:700;flex:none}
+.acc-b{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+.sub-h{font:700 14px var(--f-head);margin:6px 0 0}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+@media (max-width:700px){.app{border-radius:0;border-left:0;border-right:0;height:calc(100vh - 230px)}.app.phone{max-width:100%;border-width:0;border-radius:14px;border:1px solid var(--line)}}
+.item>svg{width:20px;height:20px;flex:none}
+.meter{height:8px;border-radius:5px;background:var(--a-surface);overflow:hidden}.meter i{display:block;height:100%;background:var(--c,var(--a-primary));border-radius:5px}
+.thanks{border-radius:var(--r-m);padding:16px;color:var(--a-on);background:linear-gradient(135deg,var(--a-primary),color-mix(in srgb,var(--a-primary) 55%,#000))}
+.thanks h4{margin:0 0 6px;font:700 17px var(--f-head)}
+/* Pantalla de entrada (D261): fondo con profundidad, logo y textos que aparecen, engranajes girando y marca de agua de la plataforma */
+.splash{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--a-on);text-align:center;padding:24px;cursor:pointer;overflow:hidden;
+ background:radial-gradient(120% 80% at 18% 8%,color-mix(in srgb,var(--a-primary) 72%,#fff) 0%,transparent 55%),radial-gradient(90% 70% at 88% 96%,color-mix(in srgb,var(--a-primary) 50%,#000) 0%,transparent 62%),linear-gradient(160deg,var(--a-primary),color-mix(in srgb,var(--a-primary) 55%,#000));
+ animation:sp-in .35s ease both,sp-out .35s ease 2.25s forwards}
+.splash::before{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0 2px,transparent 2px 24px);animation:sp-drift 8s linear infinite}
+.splash::after{content:"";position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.2),transparent 65%);animation:sp-pulse 2.4s ease-in-out infinite}
+.splash>*{position:relative;z-index:1}
+.splash .logo{background:var(--a-on);color:var(--a-primary);width:88px;height:88px;font-size:30px;border-radius:26px;box-shadow:0 14px 34px rgba(0,0,0,.28);animation:sp-pop .7s cubic-bezier(.2,.9,.3,1.25) .1s both}
+.splash h2{margin:8px 0 0;font:700 25px var(--f-head);letter-spacing:.01em;animation:sp-up .55s ease .45s both}
+.splash p{margin:0;max-width:290px;animation:sp-up .55s ease .65s both}
+.sp-status{width:64px;height:48px;margin-top:16px;animation:sp-up .4s ease .8s both}
+.sp-gears{position:absolute;inset:0}
+.sp-gears svg{position:absolute}
+.sp-g1{left:4px;top:4px;width:36px;height:36px;animation:sp-spin 1.8s linear infinite}
+.sp-g2{left:34px;top:20px;width:26px;height:26px;animation:sp-spin-r 1.3s linear infinite}
+.sp-pw{position:absolute;left:0;right:0;bottom:16px;font-size:11px;letter-spacing:.05em;opacity:0;animation:sp-wm .6s ease 1s forwards}
+@keyframes sp-wm{to{opacity:.45}}
+@keyframes sp-in{from{opacity:0}to{opacity:1}}
+@keyframes sp-out{to{opacity:0;transform:scale(1.04)}}
+@keyframes sp-pop{0%{opacity:0;transform:scale(.6) rotate(-8deg)}100%{opacity:1;transform:none}}
+@keyframes sp-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sp-spin{to{transform:rotate(360deg)}}
+@keyframes sp-spin-r{to{transform:rotate(-360deg)}}
+@keyframes sp-hide{to{opacity:0;transform:scale(.7)}}
+@keyframes sp-show{to{opacity:1}}
+@keyframes sp-draw{to{stroke-dashoffset:0}}
+@keyframes sp-drift{to{transform:translate(48px,48px)}}
+@keyframes sp-pulse{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.08);opacity:1}}
+/* Con "reducir movimiento": la misma pantalla, quieta y con el check ya marcado */
+@media (prefers-reduced-motion:reduce){.splash,.splash *,.splash::before,.splash::after{animation:none!important}.sp-pw{opacity:.45}}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Portada de venta (prefijo mk- para no chocar con la demo) */
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.mk{--mk-tinta:#0F1622;--mk-noche:#1C2B45;--mk-hueso:#F4F1EA;--mk-laton:#C99A45;--mk-suave:#C8D3E6;font-family:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;color:var(--mk-hueso);background:radial-gradient(60% 50% at 100% 0%,rgba(201,154,69,.18),transparent 60%),linear-gradient(170deg,#22355A 0%,var(--mk-noche) 40%,var(--mk-tinta) 100%);line-height:1.55}
+.mk *{box-sizing:border-box}
+.mk-wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mk-top{display:flex;justify-content:space-between;align-items:center;padding-block:18px}
+.mk-logo{font:700 1.25rem 'Space Grotesk',system-ui,sans-serif;color:var(--mk-hueso);text-decoration:none;letter-spacing:-.01em}
+.mk-logo b{color:var(--mk-laton)}
+.mk-back{color:var(--mk-suave);text-decoration:none;font-size:.95rem}
+.mk-back:hover{color:var(--mk-hueso)}
+.mk-hero{padding-block:48px 64px;display:grid;gap:36px}
+@media (min-width:960px){.mk-hero{grid-template-columns:1.15fr 1fr;align-items:center;padding-block:72px 96px}}
+.mk-eyebrow{font:500 .8rem 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mk-laton)}
+.mk h1{font:700 clamp(2.1rem,7vw,3.6rem)/1.08 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;margin:14px 0 0;max-width:16ch}
+.mk-lead{margin-top:18px;font-size:clamp(1.05rem,2.6vw,1.25rem);color:var(--mk-suave);max-width:52ch}
+.mk-ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.mk-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;font:600 1.1rem 'IBM Plex Sans',system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:filter 160ms ease,transform 160ms cubic-bezier(.23,1,.32,1)}
+.mk-btn:active{transform:scale(.97)}
+.mk-btn-main{background:linear-gradient(180deg,#CFA24E 0%,#BD8A30 100%);color:var(--mk-tinta);box-shadow:inset 0 1px 0 rgba(255,244,214,.55),0 10px 22px -12px rgba(0,0,0,.6)}
+.mk-btn-main:hover{filter:brightness(1.06)}
+.mk-btn-ghost{color:var(--mk-hueso);box-shadow:inset 0 0 0 1.5px rgba(201,154,69,.75)}
+.mk-btn-ghost:hover{background:rgba(201,154,69,.12)}
+.mk-btn svg{width:22px;height:22px;flex:none}
+.mk-note{margin-top:14px;font-size:.95rem;color:#B4C2D8}
+.mk-phone{justify-self:center;width:min(300px,78vw);aspect-ratio:9/18;border-radius:34px;background:#0B111B;border:1px solid rgba(244,241,234,.12);box-shadow:0 40px 80px -36px rgba(0,0,0,.9);padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+.mk-ph-head{display:flex;align-items:center;gap:10px;padding:6px 4px 10px}
+.mk-ph-av{width:34px;height:34px;border-radius:10px;background:var(--mk-laton);color:var(--mk-tinta);font:700 .85rem 'Space Grotesk',sans-serif;display:grid;place-items:center}
+.mk-ph-t{font-weight:600;font-size:.95rem}.mk-ph-s{font-size:.75rem;color:#8FA0BC}
+.mk-ph-row{display:flex;align-items:center;gap:10px;background:#16223A;border-radius:12px;padding:10px 12px;font-size:.82rem}
+.mk-ph-row b{font:600 .85rem 'IBM Plex Mono',monospace;color:var(--mk-suave);width:42px}
+.mk-ph-row span{flex:1;min-width:0}
+.mk-tag{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor}
+.mk-ok{color:#5BC48A}.mk-go{color:var(--mk-laton)}.mk-wait{color:#8FA0BC}
+.mk-ph-btn{margin-top:auto;background:var(--mk-laton);color:var(--mk-tinta);border-radius:12px;text-align:center;font-weight:700;padding:12px;font-size:.9rem}
+.mk-sec{padding-block:56px;border-top:1px solid rgba(244,241,234,.08)}
+.mk h2{font:700 clamp(1.6rem,5vw,2.4rem)/1.15 'Space Grotesk',system-ui,sans-serif;letter-spacing:-.01em;margin:0;max-width:22ch}
+.mk-sub{margin-top:10px;color:var(--mk-suave);max-width:60ch}
+.mk-grid{display:grid;gap:16px;margin-top:32px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.mk-card{background:rgba(15,22,34,.45);border:1px solid rgba(244,241,234,.1);border-radius:18px;padding:22px}
+.mk-card svg{width:28px;height:28px;color:var(--mk-laton)}
+.mk-card h3{font:700 1.15rem 'Space Grotesk',system-ui,sans-serif;margin:12px 0 6px}
+.mk-card p{margin:0;color:var(--mk-suave);font-size:.98rem}
+.mk-role{font:500 .75rem 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mk-laton)}
+.mk-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;padding:0;list-style:none}
+.mk-chips li{padding:10px 16px;border-radius:99px;background:rgba(201,154,69,.12);border:1px solid rgba(201,154,69,.35);font-weight:500}
+.mk-end{padding-block:56px 64px;text-align:center;border-top:1px solid rgba(244,241,234,.08)}
+.mk-end h2{margin-inline:auto}
+.mk-end .mk-ctas{justify-content:center}
+.mk-btn:focus-visible,.mk a:focus-visible{outline:3px solid var(--mk-laton);outline-offset:3px}
+@media (min-width:900px){.mk-g3{grid-template-columns:repeat(3,1fr)}}
+/* Pantallas: cada sección ocupa la pantalla y la flecha lleva a la siguiente */
+
+.mk-screen{min-height:100svh;display:flex;flex-direction:column;justify-content:center;position:relative;scroll-snap-align:start;padding-bottom:88px}
+.mk-hero.mk-screen{display:grid;min-height:calc(100svh - 70px);align-content:center}
+.mk-hero.mk-screen{scroll-snap-align:none}
+body{margin:0}
+@media (max-width:599px){.mk-hero .mk-phone{display:none}}
+.mk-end .mk-ctas{margin-top:28px}
+.mk-next{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:52px;height:52px;border-radius:99px;display:grid;place-items:center;color:var(--mk-laton);box-shadow:inset 0 0 0 1.5px rgba(201,154,69,.6);text-decoration:none;animation:mk-bob 2.2s ease-in-out infinite}
+.mk-next svg{width:26px;height:26px}
+.mk-next:hover{background:rgba(201,154,69,.12)}
+@keyframes mk-bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+@media (prefers-reduced-motion:reduce){.mk-next{animation:none}}
+.mk h3.mk-for{font:700 1.25rem 'Space Grotesk',system-ui,sans-serif;margin:40px 0 0}
+#demo{scroll-margin-top:12px}
+</style>
+
+<div class="mk">
+  <div class="mk-wrap">
+    <header class="mk-top">
+      <a class="mk-logo" href="../">Mon<b>K</b>leys</a>
+      <a class="mk-back" href="../">← Volver al inicio</a>
+    </header>
+
+    <section class="mk-hero mk-screen" id="mk-s1" aria-labelledby="mk-h1">
+      <div>
+        <div class="mk-eyebrow">Software para negocios de servicios</div>
+        <h1 id="mk-h1">Tu negocio en una app con tu nombre</h1>
+        <p class="mk-lead">Agenda, cobros, clientes, inventario y caja en un solo lugar. Cada persona entra directo a su trabajo, desde el celular o el PC, y tus clientes reservan solos.</p>
+        <p class="mk-note">Está en desarrollo. La demo usa datos de ejemplo y no guarda nada.</p>
+      </div>
+      <div class="mk-phone" aria-hidden="true">
+        <div class="mk-ph-head"><div class="mk-ph-av">TN</div><div><div class="mk-ph-t">Tu negocio</div><div class="mk-ph-s">Agenda de hoy</div></div></div>
+        <div class="mk-ph-row"><b>9:00</b><span>Corte y barba</span><em class="mk-tag mk-ok">Pagada</em></div>
+        <div class="mk-ph-row"><b>10:30</b><span>Manicure</span><em class="mk-tag mk-go">En curso</em></div>
+        <div class="mk-ph-row"><b>11:00</b><span>Limpieza facial</span><em class="mk-tag mk-wait">Confirmada</em></div>
+        <div class="mk-ph-row"><b>12:00</b><span>Corte clásico</span><em class="mk-tag mk-wait">Confirmada</em></div>
+        <div class="mk-ph-btn">+ Agendar cita</div>
+      </div>
+      <a class="mk-next" href="#mk-s2" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </section>
+
+    <section class="mk-sec mk-screen" id="mk-s2" aria-labelledby="mk-h-ben">
+      <h2 id="mk-h-ben">Todo lo del día a día, sin papeles ni cuadernos</h2>
+      <p class="mk-sub">Las tareas que más se repiten se hacen en pocos toques, y el estado de cada cita se ve sin abrirla.</p>
+      <div class="mk-grid mk-g3">
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><h3>Agenda sin cruces</h3><p>Todos tus profesionales lado a lado. Agendas a un cliente nuevo o de siempre en segundos.</p></article>
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><h3>Cobra rápido</h3><p>Efectivo, tarjeta o transferencia, incluso mezclados en una misma venta. Queda registrado quién cobró.</p></article>
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 5.5h18V9H3zM10 13h4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg><h3>Caja clara</h3><p>Sabes cuánto entró y cuánto salió en el día. Si no usas caja, la apagas y desaparece del menú.</p></article>
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z M4 7.5l8 4.5 8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><h3>Inventario al día</h3><p>Cargas stock cuando llega mercancía y siempre sabes cuánto te queda. Sin hojas de cálculo.</p></article>
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><h3>Tus clientes reservan solos</h3><p>Desde su celular eligen servicio, profesional y hora, sin llamarte. También ven o cancelan su cita.</p></article>
+        <article class="mk-card"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 0 0 17c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a3.5 3.5 0 0 0 3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/><circle cx="12" cy="7.5" r="1.2" fill="currentColor"/></svg><h3>Con tu marca</h3><p>Tu logo, tus colores y tu tipografía. Tus clientes ven tu app, no la nuestra.</p></article>
+      </div>
+      <a class="mk-next" href="#mk-s3" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </section>
+
+    <section class="mk-sec mk-screen" id="mk-s3" aria-labelledby="mk-h-roles">
+      <h2 id="mk-h-roles">Cada persona ve primero lo suyo</h2>
+      <p class="mk-sub">Nadie busca en menús: al abrir la app, cada rol entra directo a su tarea del día.</p>
+      <div class="mk-grid">
+        <article class="mk-card"><div class="mk-role">Recepción</div><h3>Agenda y cobro</h3><p>En el PC o la tablet del mostrador, la agenda del día y lo que falta por cobrar.</p></article>
+        <article class="mk-card"><div class="mk-role">Profesional</div><h3>Sus citas de hoy</h3><p>En su celular. Inicia y completa cada cita con un toque.</p></article>
+        <article class="mk-card"><div class="mk-role">Dueño</div><h3>Cómo va el día</h3><p>Ventas, caja y pendientes en una sola pantalla, estés donde estés.</p></article>
+        <article class="mk-card"><div class="mk-role">Tu cliente</div><h3>Reservar y ver su cita</h3><p>Desde su celular, con el nombre y los colores de tu negocio.</p></article>
+      </div>
+      <h3 class="mk-for">Hecha para negocios que agendan y venden</h3>
+      <ul class="mk-chips">
+        <li>Barberías</li><li>Salones de belleza</li><li>Spas</li><li>Consultorios</li><li>Veterinarias</li><li>Talleres</li>
+      </ul>
+      <a class="mk-next" href="#mk-s5" aria-label="Ir a la siguiente sección"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </section>
+
+    <section class="mk-end mk-screen" id="mk-s5" aria-labelledby="mk-h-end">
+      <h2 id="mk-h-end">Ahora pruébala tú</h2>
+      <p class="mk-sub" style="margin-inline:auto">Cambia de rol, de dispositivo y mira cómo se ve con la marca de un negocio de ejemplo.</p>
+      <div class="mk-ctas"><a class="mk-btn mk-btn-main" href="#demo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Probar la demo</a></div>
+    </section>
+  </div>
+</div>
+
+<div class="page" id="demo">
+  <section class="bench" aria-label="Controles de la demo">
+    <h1>Demo de la app, ola 1 <small>datos de ejemplo · nada se guarda</small></h1>
+    <div class="ctl"><span>Quién la usa</span><div class="seg" id="c-role"></div></div>
+    <div class="ctl"><span>Dispositivo</span><div class="seg" id="c-dev"></div></div>
+    <div class="ctl"><span>Al abrir la app</span><div class="seg"><button data-splash>Ver presentación</button></div></div>
+    <div class="ctl" style="display:none"><span>Plan del negocio (para ver Dueño → Ajustes → Mi plan)</span><div class="seg" id="c-plan"></div></div>
+    <div class="ctl" style="display:none"><span>Pagos</span><div class="seg" id="c-pay"></div></div>
+    <div class="ctl" style="display:none"><span>Paleta del negocio (atajo: en la app está en Dueño → Ajustes)</span><div class="seg" id="c-pal"></div></div>
+    <div class="ctl" style="display:none"><span>Tipografía</span><div class="seg" id="c-typo"></div></div>
+    <div class="ctl" style="display:none"><span>Bordes · modo (el modo lo elige cada usuario)</span><div class="seg" id="c-mode"></div></div>
+  </section>
+  <div class="slice" id="slice"></div>
+  <div class="stage"><div class="app" id="app"></div></div>
+</div>
+
+<script>
+(function(){
+// ---------- Catálogo real de marca (BrandCatalog.cs, D208) ----------
+const PAL={
+ "indigo":{n:"Índigo",l:["#FFFFFF","#EEF2FF","#111827","#4B5563","#C7D2FE","#4338CA","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#0F1020","#1C1E35","#F3F4F6","#A1A1AA","#312E81","#A5B4FC","#1E1B4B","#4ADE80","#F87171","#FBBF24"]},
+ "esmeralda":{n:"Esmeralda",l:["#FFFFFF","#ECFDF5","#111827","#4B5563","#A7F3D0","#047857","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#0B1512","#14241F","#F3F4F6","#A1A1AA","#065F46","#6EE7B7","#022C22","#4ADE80","#F87171","#FBBF24"]},
+ "grafito-oro":{n:"Grafito y oro",l:["#FFFFFF","#F5F5F4","#111827","#4B5563","#D6D3D1","#854D0E","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#121214","#1F1F23","#F3F4F6","#A1A1AA","#3F3F46","#FACC15","#18181B","#4ADE80","#F87171","#FBBF24"]},
+ "terracota":{n:"Terracota",l:["#FFFFFF","#FFF7ED","#111827","#4B5563","#FED7AA","#9A3412","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#170F0B","#26190F","#F3F4F6","#A1A1AA","#7C2D12","#FDBA74","#431407","#4ADE80","#F87171","#FBBF24"]},
+ "rosa-vino":{n:"Rosa vino",l:["#FFFFFF","#FFF1F2","#111827","#4B5563","#FECDD3","#9F1239","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#160B0E","#261318","#F3F4F6","#A1A1AA","#881337","#FDA4AF","#4C0519","#4ADE80","#F87171","#FBBF24"]},
+ // Propuesta: 5 paletas vivas (pasan WCAG AA con las mismas reglas de BrandCatalogContrastTests)
+ "fucsia":{n:"Fucsia",viva:1,l:["#FFFFFF","#FDE8F3","#111827","#4B5563","#F9A8D4","#C0166A","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#1A0A13","#2E1222","#F3F4F6","#A1A1AA","#9D174D","#F472B6","#3B0721","#4ADE80","#F87171","#FBBF24"]},
+ "turquesa":{n:"Turquesa",viva:1,l:["#FFFFFF","#E0F7F6","#111827","#4B5563","#99E6E0","#0B7A80","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#06171A","#0E2A2E","#F3F4F6","#A1A1AA","#115E63","#2DD4BF","#042F2E","#4ADE80","#F87171","#FBBF24"]},
+ "mandarina":{n:"Mandarina",viva:1,l:["#FFFFFF","#FFEDE0","#111827","#4B5563","#FDBA8C","#C2410C","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#1A0E06","#2E1A0C","#F3F4F6","#A1A1AA","#9A3412","#FB923C","#431407","#4ADE80","#F87171","#FBBF24"]},
+ "violeta":{n:"Violeta",viva:1,l:["#FFFFFF","#F1EAFE","#111827","#4B5563","#D4C2FC","#7C3AED","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#120B20","#221636","#F3F4F6","#A1A1AA","#5B21B6","#C4B5FD","#2E1065","#4ADE80","#F87171","#FBBF24"]},
+ "lima":{n:"Lima neón",neon:1,l:["#FFFFFF","#F0FBE0","#111827","#4B5563","#BEF264","#3F6212","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#07090A","#11161A","#F3F4F6","#A1A1AA","#365314","#A3FF12","#0B1400","#4ADE80","#F87171","#FBBF24"]},
+ "cian":{n:"Cian neón",neon:1,l:["#FFFFFF","#E0FAFF","#111827","#4B5563","#A5F3FC","#0E7490","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#05080F","#0D1420","#F3F4F6","#A1A1AA","#155E75","#00E5FF","#001A1F","#4ADE80","#F87171","#FBBF24"]},
+ "magenta":{n:"Magenta neón",neon:1,l:["#FFFFFF","#FDE7FB","#111827","#4B5563","#F5A3EC","#B0179A","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#0C0510","#1A0D20","#F3F4F6","#A1A1AA","#86198F","#FF3DF2","#2A0026","#4ADE80","#F87171","#FBBF24"]},
+ "electrico":{n:"Amarillo eléctrico",neon:1,l:["#FFFFFF","#FEF9C3","#111827","#4B5563","#FDE047","#854D0E","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#0A0A06","#17170E","#F3F4F6","#A1A1AA","#713F12","#FFF01F","#1A1600","#4ADE80","#F87171","#FBBF24"]},
+ "coral":{n:"Coral neón",neon:1,l:["#FFFFFF","#FFECE5","#111827","#4B5563","#FDBA9F","#C2380C","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#0D0605","#1C0F0C","#F3F4F6","#A1A1AA","#9A2B0B","#FF5F1F","#260800","#4ADE80","#F87171","#FBBF24"]},
+ "cobalto":{n:"Cobalto",viva:1,l:["#FFFFFF","#E5EEFF","#111827","#4B5563","#B3CBFF","#1D4ED8","#FFFFFF","#166534","#B91C1C","#92400E"],d:["#070F22","#101C3A","#F3F4F6","#A1A1AA","#1E3A8A","#60A5FA","#0B1B44","#4ADE80","#F87171","#FBBF24"]}
+};
+const TYPO={moderna:["Moderna","Inter","Inter"],geometrica:["Geométrica","Poppins","Inter"],elegante:["Elegante","Playfair Display","Source Sans 3"],amigable:["Amigable","Nunito","Nunito"],tecnologica:["Tecnológica","Space Grotesk","Inter"]};
+const KEYS=["--a-bg","--a-surface","--a-text","--a-muted","--a-border","--a-primary","--a-on","--a-ok","--a-err","--a-warn"];
+
+// ---------- Datos de ejemplo ----------
+const NOW=10*60+40; // 10:40
+const pros=[{id:"p1",n:"Andrés"},{id:"p2",n:"Camilo"},{id:"p3",n:"Julián"}];window.__allPros=pros;
+const services=[{id:"s1",n:"Corte clásico",m:30,p:25000,on:true},{id:"s2",n:"Corte y barba",m:60,p:38000,on:true},{id:"s3",n:"Arreglo de barba",m:30,p:18000,on:true},{id:"s4",n:"Corte niño",m:30,p:20000,on:true},{id:"s5",n:"Cejas",m:30,p:8000,on:true}];
+const products=[{id:"x1",n:"Cera mate 80 g",p:28000},{id:"x2",n:"Aceite para barba",p:32000},{id:"x3",n:"Shampoo anticaspa",p:24000}];
+const customers=[{id:"c1",n:"Laura Gómez",t:"300 412 8890",e:"laura.gomez@correo.co",ns:0},{id:"c2",n:"Felipe Ríos",t:"311 905 2231",e:"felipe.rios@correo.co",ns:1},{id:"c3",n:"Mateo Herrera",t:"315 220 7714",e:"",ns:0},{id:"c4",n:"Sofía Castaño",t:"320 118 4402",e:"sofia.c@correo.co",ns:0},{id:"c5",n:"Daniel Pérez",t:"301 776 0198",e:"",ns:2},{id:"c6",n:"Juan Esteban Mora",t:"318 640 5521",e:"juanes.mora@correo.co",ns:0}];
+const t=(h,m)=>h*60+(m||0);
+let appts=[
+ {id:"a1",pro:"p1",cus:"c2",svc:"s2",start:t(9),st:"Completada"},
+ {id:"a2",pro:"p2",cus:"c3",svc:"s1",start:t(9,30),st:"Completada"},
+ {id:"a3",pro:"p1",cus:"c1",svc:"s1",start:t(10,30),st:"En curso"},
+ {id:"a4",pro:"p3",cus:"c5",svc:"s3",start:t(10),st:"No llegó"},
+ {id:"a5",pro:"p2",cus:"c4",svc:"s2",start:t(11),st:"Confirmada"},
+ {id:"a6",pro:"p1",cus:"c6",svc:"s1",start:t(11,30),st:"Pendiente"},
+ {id:"a7",pro:"p3",cus:"c1",svc:"s4",start:t(12),st:"Confirmada"},
+ {id:"a8",pro:"p2",cus:"c2",svc:"s5",start:t(15),st:"Pendiente"},
+ {id:"a9",pro:"p3",cus:"c6",svc:"s2",start:t(16),st:"Confirmada"},
+ {id:"a10",pro:"p1",cus:"c3",svc:"s3",start:t(17),st:"Confirmada"}
+];
+let sales=[
+ {id:"v1",appt:"a1",cus:"c2",items:[{n:"Corte y barba",p:38000},{n:"Aceite para barba",p:32000}],pays:[{m:"Nequi",a:70000}],st:"Pagada",at:"09:58",by:"Recepción"},
+ {id:"v2",appt:"a2",cus:"c3",items:[{n:"Corte clásico",p:25000}],pays:[],st:"Por cobrar",at:"10:05",by:""}
+];
+let cash=[{t:"Entrada",a:100000,r:"Base del día",at:"08:55"}];
+let specials=[{pro:"p3",d:"Sáb 17 oct",k:"Horario distinto",h:"9:00 a 13:00"}];
+let myAppts=[{svc:"s1",pro:"p2",day:"Sáb 24 oct",time:"10:00",st:"Confirmada"},{svc:"s3",pro:"p1",day:"Mar 6 oct",time:"16:30",st:"Completada",past:true}];
+let notices=[{t:"La cita de Daniel Pérez (10:00) quedó como no llegó.",at:"10:15",go:"cus:c5",cta:"Ver cliente"},{t:"Hay 1 venta por cobrar desde las 10:05.",at:"10:20",go:"sale:v2",cta:"Cobrar"},{t:"Cierre de caja de ayer: diferencia de $ 2.000.",at:"Ayer",go:"view:caja",cta:"Ver caja"}];
+const noticeList=()=>notices.length?notices.map((n,i)=>`<div class="item" style="cursor:default;flex-wrap:wrap"><span class="grow small" style="min-width:160px">${n.t}<br><span class="muted">${n.at}</span></span><span class="btns"><button class="btn" style="padding:7px 11px;font-size:13px" data-notice="${i}">${n.cta}</button><button class="btn quiet" style="padding:7px 11px;font-size:13px" data-nread="${i}">Resuelto</button></span></div>`).join(""):'<p class="muted small" style="margin:0">Sin pendientes. Todo al día.</p>';
+
+const PLANS={basico:{n:"Básico",p:59900,inc:["Agenda, ventas, caja e inventario","Usuarios ilimitados","Reserva en línea","Facturación electrónica: adicional"]},medio:{n:"Medio",p:89900,inc:["Todo lo de Básico","Recordatorios por WhatsApp con límite mensual","Reportes avanzados","Facturación electrónica: adicional"]},pro:{n:"Pro",p:129900,inc:["Todo lo de Medio","Más mensajes de WhatsApp","Agente de IA con límite mensual","Facturación electrónica incluida"]},ilimitado:{n:"Ilimitado",p:0,inc:["Todo el sistema, sin pagar nunca","Todas las actualizaciones"]}};
+const PAY={aldia:"Al día",pronto:"Vence pronto",gracia:"En gracia",suspendido:"Suspendido"};
+const S={plan:"medio",pay:"aldia",splash:true,slogan:"Cortes clásicos y modernos en el centro de Medellín",role:"recepcion",view:"inicio",dev:innerWidth<760?"phone":"pc",pal:"indigo",typo:"moderna",square:false,mode:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light",
+ open:new Set(),cfg:{booking:true,cash:true},sheet:null,toast:null,wiz:null,saleId:null,cusId:null,q:"",gridPro:"p1",cb:null,client:{logged:false},countDone:null,biz:"Barbería El Bigote",addr:"Cra. 43 #10-25, El Poblado",logo:null,cover:null,theme:"system",city:"Medellín",allAg:{},soc:{wa:"+573001234567",ig:"barberiaelbigote",fb:"",tt:""}};
+
+const $=s=>document.querySelector(s);
+const digits=t=>(t||"").replace(/\D/g,"");
+function linkCus(f,via){f.acc=true;const old=f.e;f.e=S.client.entry.mail.toLowerCase();S.client.logged=true;S.client.name=f.n;S.client.mail=f.e;S.client.phone=f.t;S.client.entry.step=1;
+ const hist=appts.filter(a=>a.cus===f.id).length;
+ return ok("¡Te reconocimos, "+esc(f.n.split(" ")[0])+"!",[["Verificado por",via==="correo"?"Código al correo":"Código por SMS al celular"],["Tu historial",hist+" citas en "+esc(S.biz)],...(via==="celular"?[["Correo",old?"Corregido a "+esc(f.e):"Agregado: "+esc(f.e)]]:[])])}
+const SOC=[["wa","WhatsApp",v=>"https://wa.me/"+v.replace("+",""),'<path d="M4 20l1.3-3.8A8 8 0 1 1 8 19z"/><path d="M9 9.5c.5 2 2.5 4 4.5 4.5l1.2-1.2 2 1-.5 1.7c-3.5.3-7.5-3.7-7.2-7.2L10.7 7l1 2z"/>'],["ig","Instagram",v=>"https://instagram.com/"+v,'<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.8" cy="7.2" r=".6"/>'],["fb","Facebook",v=>"https://facebook.com/"+v,'<path d="M14 21v-7.5h2.5l.4-3H14V8.7c0-.9.3-1.5 1.5-1.5H17V4.5a19 19 0 0 0-2.3-.1c-2.3 0-3.7 1.4-3.7 3.9v2.2H8.5v3H11V21"/>'],["tt","TikTok",v=>"https://tiktok.com/@"+v,'<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2 4.2 4.5 4.5"/>']];
+const mapsUrl=()=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(S.addr+", "+S.city);
+const socLinks=(size)=>SOC.filter(([k])=>S.soc[k]).map(([k,n,u,ic])=>`<a class="soc" href="${esc(u(S.soc[k]))}" target="_blank" rel="noopener noreferrer" aria-label="${n}" title="${n}" style="width:${size}px;height:${size}px"><svg viewBox="0 0 24 24" width="${size*.55}" height="${size*.55}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></a>`).join("");
+const FOOT=()=>`<footer class="foot"><div class="row" style="flex-wrap:wrap;gap:8px;justify-content:space-between"><div class="small"><b>${esc(S.biz)}</b><div class="muted">${esc(S.addr)}, ${esc(S.city)}</div><a href="${esc(mapsUrl())}" target="_blank" rel="noopener noreferrer" style="color:var(--a-primary);font-weight:600">Cómo llegar en Google Maps</a></div><div class="row" style="gap:6px">${socLinks(34)}</div></div></footer>`;
+const ME="p1"; // el profesional de la demo es Andrés
+const PRO_OF={"Andrés":"p1","Camilo":"p2","Julián":"p3"};
+const canManage=pro=>S.role!=="profesional"||pro===ME||!!S.allAg[ME];
+const LOGO=()=>S.logo?`<div class="logo" style="padding:0;overflow:hidden"><img src="${S.logo}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`:`<div class="logo">EB</div>`;
+const GEAR=(c,n)=>`<svg class="${c}" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="${(94.25/n/2).toFixed(2)}"/><circle cx="20" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="20" cy="20" r="3.5" fill="currentColor"/></svg>`;
+const SPLASH=()=>`<div class="splash" aria-hidden="true">${LOGO()}<h2>${esc(S.biz)}</h2>${S.slogan?`<p>${esc(S.slogan)}</p>`:""}<div class="sp-status"><div class="sp-gears">${GEAR("sp-g1",10)}${GEAR("sp-g2",8)}</div></div><div class="sp-pw">Powered by MonKleys</div></div>`;
+const SPLASH_MS=()=>matchMedia("(prefers-reduced-motion: reduce)").matches?1500:2650;
+const WDAYS=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+const H=p=>p.h||(p.h={d:[1,1,1,1,1,1,0],from:"09:00",to:"19:00",lunch:true,lf:"13:00",lt:"14:00"});
+const hText=p=>{const h=H(p),on=WDAYS.filter((x,i)=>h.d[i]);return (on.length?on.join(", "):"Sin días")+" · "+h.from+" a "+h.to+(h.lunch?" · almuerzo "+h.lf+" a "+h.lt:"")};
+const sysDark=matchMedia("(prefers-color-scheme: dark)");
+function setTheme(t){S.theme=t;S.mode=t==="system"?(sysDark.matches?"dark":"light"):t;render()}
+sysDark.addEventListener("change",()=>{if(S.theme==="system")setTheme("system")});
+const themePick=()=>`<div class="field"><label>Tema de la app</label><div class="row" style="flex-wrap:wrap;gap:6px">${[["light","Claro"],["dark","Oscuro"],["system","Como mi dispositivo"]].map(([k,l])=>`<button class="btn ${S.theme===k?"":"quiet"}" style="padding:7px 12px" aria-pressed="${S.theme===k}" data-themeset="${k}">${l}</button>`).join("")}</div><span class="muted small">Es tuyo: no cambia lo que ven los demás. Los colores del negocio los pone el dueño.</span></div>`;
+const money=n=>"$ "+Math.round(n).toLocaleString("es-CO");
+const hm=m=>Math.floor(m/60)+":"+String(m%60).padStart(2,"0");
+const P=id=>pros.find(x=>x.id===id), C=id=>customers.find(x=>x.id===id), V=id=>services.find(x=>x.id===id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const chip=st=>`<span class="chip st-${st.split(" ")[0]}">${st}</span>`;
+const total=s=>s.items.reduce((a,b)=>a+b.p,0), paid=s=>s.pays.reduce((a,b)=>a+b.a,0);
+// Confirmación grande después de cada transacción: qué pasó, con quién, cuánto y a qué hora.
+function ok(title,lines,tone,extra){S.sheet={type:"ok",title,lines,tone:tone||"ok",extra};render()}
+function toast(m){S.toast=m;render();clearTimeout(toast.t);toast.t=setTimeout(()=>{S.toast=null;render()},2200)}
+
+const ICON={
+ inicio:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ agenda:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ cobrar:'<rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20M6 15h4"/>',
+ clientes:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.3-5.5 6.5-5.5s5.7 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/>',
+ caja:'<path d="M4 9h16v11H4zM2 9l3-5h14l3 5M10 14h4"/>',
+ ajustes:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+ negocio:'<path d="M4 10v10h16V10M2 10l2-6h16l2 6zM9 20v-5h6v5"/>',
+ reservar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M12 13v5M9.5 15.5h5"/>',
+ miscitas:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+ cuenta:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.4 4-6.5 8-6.5s7 2.1 8 6.5"/>'
+};
+const ico=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+
+const ROLES={recepcion:"Recepción",profesional:"Profesional (Andrés)",dueno:"Dueño",cliente:"Cliente del negocio",entrada:"Entrada del personal"};
+const NAV={
+ recepcion:[["inicio","Inicio"],["agenda","Agenda"],["cobrar","Cobrar"],["clientes","Clientes"],["caja","Caja"],["ajustes","Ajustes"]],
+ profesional:[["inicio","Mis citas"],["agenda","Agenda"],["cobrar","Cobrar"],["clientes","Clientes"],["caja","Caja"],["ajustes","Ajustes"]],
+ dueno:[["inicio","Inicio"],["agenda","Agenda"],["cobrar","Cobrar"],["clientes","Clientes"],["caja","Caja"],["ajustes","Ajustes"]],
+ cliente:[["negocio","Inicio"],["reservar","Reservar"],["miscitas","Mis citas"],["cuenta","Ajustes"]]
+};
+const SLICE={entrada:"11a · Base: entrada, marca y menú por rol",inicio:"11b · Inicio por rol",agenda:"11b · Agenda y agendar en 3 pasos",clientes:"11b · Clientes mínimos",ajustes:"11b · Ajustes: cuenta y tema para todos, negocio solo el dueño",cobrar:"11c · Cobrar",caja:"11c · Caja",negocio:"11d · Cliente: inicio del negocio",reservar:"11d · Cliente: reservar",miscitas:"11d · Cliente: mis citas",cuenta:"11d · Cliente: ajustes (cuenta y tema)"};
+const isAdmin=()=>S.role==="dueno";
+
+// ---------- Controles de la demo ----------
+function bench(){
+ $("#c-role").innerHTML=Object.entries(ROLES).map(([k,v])=>`<button data-role="${k}" aria-pressed="${S.role===k}">${v}</button>`).join("");
+ $("#c-dev").innerHTML=[["phone","Celular"],["pc","PC o tablet"]].map(([k,v])=>`<button data-dev="${k}" aria-pressed="${S.dev===k}">${v}</button>`).join("");
+ const grp=v=>v.neon?"n":v.viva?"v":"s";
+ const sw=f=>Object.entries(PAL).filter(([k,v])=>grp(v)===(f===false?"s":f===true?"v":f)).map(([k,v])=>`<button class="sw" title="${v.n}" aria-label="${v.n}" data-pal="${k}" aria-pressed="${S.pal===k}" style="background:${S.mode==="dark"?v.d[5]:v.l[5]}"></button>`).join("");
+ $("#c-pal").innerHTML=`<span class="muted" style="font-size:11px;align-self:center;width:52px">Sobrias</span>${sw(false)}<span style="flex-basis:100%;height:0"></span><span class="muted" style="font-size:11px;align-self:center;width:52px">Vivas</span>${sw(true)}<span style="flex-basis:100%;height:0"></span><span class="muted" style="font-size:11px;align-self:center;width:52px">Neón</span>${sw("n")}<span style="flex-basis:100%;font-size:11.5px" class="muted">${PAL[S.pal].n}${PAL[S.pal].viva||PAL[S.pal].neon?" · propuesta nueva":""}${PAL[S.pal].neon?" · brilla en modo oscuro":""}</span>`;
+ $("#c-plan").innerHTML=Object.entries(PLANS).map(([k,v])=>`<button data-plan="${k}" aria-pressed="${S.plan===k}">${v.n}</button>`).join("");
+ $("#c-pay").innerHTML=S.plan==="ilimitado"?'<span class="muted" style="font-size:12px">No aplica: nunca paga</span>':Object.entries(PAY).map(([k,v])=>`<button data-pay="${k}" aria-pressed="${S.pay===k}">${v}</button>`).join("");
+ $("#c-typo").innerHTML=Object.entries(TYPO).map(([k,v])=>`<button data-typo="${k}" aria-pressed="${S.typo===k}" style="font-family:'${v[1]}'">${v[0]}</button>`).join("");
+ $("#c-mode").innerHTML=`<button data-sq="0" aria-pressed="${!S.square}">Redondeados</button><button data-sq="1" aria-pressed="${S.square}">Rectos</button><button data-mode="light" aria-pressed="${S.mode==="light"}">Claro</button><button data-mode="dark" aria-pressed="${S.mode==="dark"}">Oscuro</button>`;
+}
+
+// ---------- Vistas del personal ----------
+function apptRow(a,showPro){
+ const s=V(a.svc);
+ return `<button class="item" data-appt="${a.id}"><span class="time">${hm(a.start)}</span><span class="grow"><b>${esc(C(a.cus).n)}</b><br><span class="muted small">${s.n}${showPro?" · "+P(a.pro).n:""} · ${s.m} min</span></span>${chip(a.st)}</button>`;
+}
+function vInicio(){
+ if(S.role==="profesional"){
+  const mine=appts.filter(a=>a.pro==="p1"&&!["Cancelada"].includes(a.st)).sort((a,b)=>a.start-b.start);
+  const next=mine.find(a=>["En curso","Confirmada","Pendiente"].includes(a.st));
+  return `${next?`<div class="card soft"><div class="muted small">${next.st==="En curso"?"Atendiendo ahora":"Tu próxima cita"}</div><div class="row" style="margin-top:6px"><span class="time" style="font-size:22px;width:auto">${hm(next.start)}</span><div class="grow"><h3>${esc(C(next.cus).n)}</h3><div class="muted small">${V(next.svc).n}</div></div></div><div class="btns" style="margin-top:12px">${next.st==="En curso"?`<button class="btn block" data-act="Completada" data-id="${next.id}">Completar</button>`:`<button class="btn block" data-act="En curso" data-id="${next.id}">Iniciar</button>`}</div></div>`:""}
+  <h3>Hoy, jueves 15 de octubre</h3><div class="list">${mine.map(a=>apptRow(a,false)).join("")}</div>`;
+ }
+ if(S.role==="dueno"){
+  const conf=sales.filter(s=>s.st==="Pagada"), sold=conf.reduce((a,s)=>a+total(s),0);
+  const done=appts.filter(a=>a.st==="Completada").length, left=appts.filter(a=>["Confirmada","Pendiente","En curso"].includes(a.st)).length;
+  const open=sales.filter(s=>s.st==="Por cobrar").length;
+  return `<div class="tiles"><div class="card tile"><span class="muted small">Ventas de hoy</span><b>${money(sold)}</b></div><div class="card tile"><span class="muted small">Efectivo en caja</span><b>${money(expected())}</b></div><div class="card tile"><span class="muted small">Citas atendidas</span><b>${done} <span class="muted small">de ${done+left}</span></b></div><div class="card tile"><span class="muted small">Por cobrar</span><b style="color:${open?"var(--a-warn)":"inherit"}">${open}</b></div></div>
+  <div class="card"><h3>Pendientes (${notices.length})</h3><div class="list" style="margin-top:10px">${noticeList()}</div></div>
+  <div class="card"><div class="row"><h3 class="grow">Ventas por profesional</h3></div><div class="list" style="margin-top:10px">${pros.map(p=>{const v=sales.filter(s=>s.st==="Pagada"&&s.appt&&appts.find(a=>a.id===s.appt).pro===p.id).reduce((a,s)=>a+total(s),0);return `<div class="row"><span class="grow">${p.n}</span><span class="money">${money(v)}</span></div>`}).join("")}</div></div>`;
+ }
+ // recepción
+ const up=appts.filter(a=>!["Cancelada"].includes(a.st)).sort((a,b)=>a.start-b.start);
+ return `<div class="btns"><button class="btn" data-go="wiz">+ Agendar cita</button><button class="btn ghost" data-go="cobrar">Cobrar (${sales.filter(s=>s.st==="Por cobrar").length})</button></div>
+ <h3>Agenda de hoy</h3><div class="list">${up.map(a=>apptRow(a,true)).join("")}</div>`;
+}
+function vAgenda(){
+ const pros=window.__allPros.filter(p=>canManage(p.id)); if(!pros.some(p=>p.id===S.gridPro))S.gridPro=pros[0].id;
+ const head=`<div class="row"><div class="grow"><b>Hoy, jueves 15 oct</b> <span class="muted small">· vista día</span></div><button class="btn" data-go="wiz">+ Agendar</button></div>`;
+ if(S.dev==="phone"){
+  return head+`<div class="seg" style="gap:6px">${pros.map(p=>`<button class="btn ${S.gridPro===p.id?"":"quiet"}" style="padding:7px 12px" data-gp="${p.id}">${p.n}</button>`).join("")}</div>
+  <div class="list">${appts.filter(a=>a.pro===S.gridPro).sort((a,b)=>a.start-b.start).map(a=>apptRow(a,false)).join("")||'<p class="muted">Sin citas hoy.</p>'}</div>`;
+ }
+ const H0=t(9),rows=20,rh=44;
+ const colour={Pendiente:"var(--a-warn)",Confirmada:"var(--a-primary)","En curso":"var(--a-primary)",Completada:"var(--a-ok)",Cancelada:"var(--a-muted)","No llegó":"var(--a-err)"};
+ let times="";for(let i=0;i<rows;i++)times+=`<div style="height:${rh}px" class="gt">${i%2===0?hm(H0+i*30):""}</div>`;
+ const cols=pros.map(p=>`<div class="gcol" style="height:${rows*rh}px">${p.id==="p1"||true?`<div class="now" style="top:${(NOW-H0)/30*rh}px"></div>`:""}${appts.filter(a=>a.pro===p.id).map(a=>{const s=V(a.svc);return `<button class="blk" data-appt="${a.id}" style="--c:${colour[a.st]};top:${(a.start-H0)/30*rh+2}px;height:${s.m/30*rh-4}px;${a.st==="Cancelada"?"opacity:.5;":""}"><b>${hm(a.start)} ${esc(C(a.cus).n)}</b>${s.n} · ${a.st}</button>`}).join("")}</div>`).join("");
+ return head+`<div class="grid" style="--cols:${pros.length}"><div class="gh"></div>${pros.map(p=>`<div class="gh">${p.n}</div>`).join("")}<div>${times}</div>${cols}</div>`;
+}
+function vClientes(){
+ if(S.cusId){
+  const c=C(S.cusId), hist=appts.filter(a=>a.cus===c.id);
+  return `<button class="btn quiet" data-back="cus" style="align-self:flex-start">← Clientes</button>
+  <div class="card"><h3>${esc(c.n)}</h3><div class="muted small" style="margin-top:4px">${c.t}${c.e?" · "+c.e:""}</div>
+  <div class="btns" style="margin-top:10px"><span class="pill">${hist.length} citas</span><span class="pill" style="${c.ns?"color:var(--a-err)":""}">${c.ns} inasistencias</span><span class="pill">${c.e?"Con cuenta en línea":"Sin cuenta en línea"}</span></div>${c.e?"":`<div class="card soft small" style="margin-top:10px;border-color:var(--a-warn)"><b>Falta el correo.</b> Pídeselo: así, si reserva en línea, usa esta misma ficha.<div class="row" style="margin-top:8px"><input class="inp grow" id="ce-${c.id}" type="email" placeholder="nombre@correo.com"><button class="btn" data-addmail="${c.id}">Guardar</button></div></div>`}</div>
+  <div class="card"><h3>Citas</h3><div class="list" style="margin-top:10px">${hist.map(a=>`<button class="item" data-appt="${a.id}"><span class="time">${hm(a.start)}</span><span class="grow"><b>Hoy</b><br><span class="muted small">${V(a.svc).n} con ${P(a.pro).n}</span></span>${chip(a.st)}</button>`).join("")||'<span class="muted">Sin citas.</span>'}</div></div>
+  <button class="btn" data-go="wiz" data-cus="${c.id}">Agendar para ${esc(c.n.split(" ")[0])}</button>`;
+ }
+ const q=S.q.toLowerCase(), list=customers.filter(c=>!q||c.n.toLowerCase().includes(q)||c.t.replace(/ /g,"").includes(q.replace(/ /g,"")));
+ return `<div class="row"><input class="inp grow" id="q-cus" placeholder="Buscar por nombre o teléfono" value="${esc(S.q)}"><button class="btn" data-go="newcus">+ Nuevo</button></div>
+ <div class="list">${list.map(c=>`<button class="item" data-cus="${c.id}"><span class="logo" style="width:34px;height:34px;font-size:13px">${c.n.split(" ").map(w=>w[0]).slice(0,2).join("")}</span><span class="grow"><b>${esc(c.n)}</b><br><span class="muted small">${c.t}</span></span>${c.ns?`<span class="chip st-No">${c.ns} no llegó</span>`:""}</button>`).join("")}</div>`;
+}
+function vCobrar(){
+ if(S.saleId){
+  const s=sales.find(x=>x.id===S.saleId), tt=total(s), pp=paid(s), rest=tt-pp;
+  const methods=["Efectivo","Nequi","Daviplata","Tarjeta","Transferencia"];
+  return `<button class="btn quiet" data-back="sale" style="align-self:flex-start">← Ventas</button>
+  <div class="card"><div class="row"><h3 class="grow">${esc(C(s.cus).n)}</h3>${chip(s.st)}</div>
+   <div class="list" style="margin-top:10px">${s.items.map((i,ix)=>`<div class="row"><span class="grow">${i.n}</span><span class="money">${money(i.p)}</span>${s.st==="Por cobrar"?`<button class="btn quiet" style="padding:4px 9px" data-rmi="${ix}" aria-label="Quitar ${i.n}">✕</button>`:""}</div>`).join("")}</div>
+   ${s.st==="Por cobrar"?`<div class="btns" style="margin-top:10px">${products.map(p=>`<button class="btn quiet" style="padding:7px 10px;font-size:13px" data-addp="${p.id}">+ ${p.n}</button>`).join("")}</div>`:""}
+   <hr class="s" style="margin:12px 0"><div class="row"><b class="grow">Total</b><span class="money" style="font-size:18px">${money(tt)}</span></div></div>
+  <div class="card"><h3>Pagos</h3><div class="list" style="margin-top:10px">${s.pays.map((p,ix)=>`<div class="row"><span class="grow">${p.m}</span><span class="money">${money(p.a)}</span>${s.st==="Por cobrar"?`<button class="btn quiet" style="padding:4px 9px" data-undo="${ix}" aria-label="Quitar pago con ${p.m}">✕</button>`:""}</div>`).join("")||'<span class="muted small">Sin pagos todavía.</span>'}</div>
+   ${s.st==="Por cobrar"&&rest>0?`<div style="margin-top:12px" class="field"><label for="pay-amt">Monto (para dividir el pago, cámbialo antes de tocar el medio)</label><input class="inp" id="pay-amt" inputmode="numeric" value="${rest}"></div>
+   <div class="field" style="margin-top:10px"><label>Toca el medio y queda registrado</label><div class="btns">${methods.map(m=>`<button class="btn quiet" style="padding:10px 14px" data-pm="${m}">${m}</button>`).join("")}</div></div>`:""}
+   <div class="row" style="margin-top:12px"><span class="grow muted">${rest>0?"Falta":"Pagado completo"}</span><span class="money" style="color:${rest>0?"var(--a-warn)":"var(--a-ok)"}">${money(Math.max(rest,0))}</span></div></div>
+  ${s.st==="Por cobrar"?`<button class="btn block" style="padding:14px 16px;font-size:15.5px" data-confirm ${rest===0&&tt>0?"":"disabled"}>${rest===0&&tt>0?`Confirmar venta por ${money(tt)}<br><span style="font-weight:600;font-size:12.5px;opacity:.9">${esc(C(s.cus).n)} · ${s.pays.map(p=>p.m+" "+money(p.a)).join(" + ")}</span>`:`Falta ${money(Math.max(rest,0))} para confirmar`}</button><p class="muted small" style="margin:0;text-align:center">Los pagos se registran al confirmar: antes, cualquiera los cambia con ✕. Ya confirmada, solo el administrador anula con motivo.</p>`:`<div class="card soft small">Venta confirmada a las ${s.at} por ${s.by}.</div>`}`;
+ }
+ const open=sales.filter(s=>s.st==="Por cobrar"), done=sales.filter(s=>s.st==="Pagada");
+ return `<div class="btns"><button class="btn" data-go="direct">+ Venta directa</button></div>
+ <h3>Por cobrar</h3><div class="list">${open.map(s=>`<button class="item" data-sale="${s.id}"><span class="grow"><b>${esc(C(s.cus).n)}</b><br><span class="muted small">${s.items.map(i=>i.n).join(", ")} · desde ${s.at}</span></span><span class="money">${money(total(s))}</span></button>`).join("")||'<p class="muted" style="margin:0">Nada por cobrar. Bien.</p>'}</div>
+ <h3>Ventas de hoy</h3><div class="list">${done.map(s=>`<button class="item" data-sale="${s.id}"><span class="grow"><b>${esc(C(s.cus).n)}</b><br><span class="muted small">${s.pays.map(p=>p.m).join(" + ")} · ${s.at}</span></span><span class="money">${money(total(s))}</span></button>`).join("")}</div>`;
+}
+function expected(){
+ const inCash=sales.filter(s=>s.st==="Pagada").flatMap(s=>s.pays).filter(p=>p.m==="Efectivo").reduce((a,p)=>a+p.a,0);
+ return cash.reduce((a,m)=>a+(m.t==="Entrada"?m.a:-m.a),0)+inCash;
+}
+function vCaja(){
+ return `<div class="card"><h3>Movimiento de efectivo</h3><div class="row" style="margin-top:10px;flex-wrap:wrap"><input class="inp" style="flex:1 1 120px" id="cm-amt" inputmode="numeric" placeholder="Monto" aria-label="Monto"><input class="inp" style="flex:2 1 180px" id="cm-r" placeholder="Motivo, ej. compra de toallas" aria-label="Motivo"></div>
+ <div class="btns" style="margin-top:10px"><button class="btn ghost" data-cm="Entrada">Registrar entrada</button><button class="btn ghost" data-cm="Salida">Registrar salida</button></div></div>
+ <div class="card"><h3>Arqueo</h3><p class="muted small" style="margin:6px 0 10px">Cuenta el efectivo y escribe el total. No ves lo esperado para que el conteo sea honesto.</p>
+ ${S.countDone==null?`<div class="row"><input class="inp grow" id="cnt" inputmode="numeric" placeholder="Total contado" aria-label="Total contado"><button class="btn" data-count>Registrar arqueo</button></div>`:`<div class="card soft small">Arqueo registrado: ${money(S.countDone)}.${isAdmin()?` Esperado ${money(expected())}, diferencia <b style="color:${S.countDone-expected()===0?"var(--a-ok)":"var(--a-err)"}">${money(S.countDone-expected())}</b>.`:" El administrador ve la diferencia."}</div>`}</div>
+ ${isAdmin()?`<div class="card"><div class="row"><h3 class="grow">Control de caja</h3><span class="muted small">Esperado</span><span class="money">${money(expected())}</span></div><div class="list" style="margin-top:10px">${cash.map(m=>`<div class="row small"><span class="muted">${m.at}</span><span class="grow">${esc(m.r)}</span><span class="money" style="color:${m.t==="Entrada"?"var(--a-ok)":"var(--a-err)"}">${m.t==="Entrada"?"+":"−"}${money(m.a)}</span></div>`).join("")}</div></div>`:`<p class="muted small" style="margin:0">El historial y lo esperado los ve el administrador.</p>`}`;
+}
+function secSpecials(){return `<h4 class="sub-h">Días especiales</h4><p class="muted small" style="margin:6px 0 10px">Para cuando un profesional no viene o trabaja otro horario. Sus horas se bloquean en la agenda y en la reserva en línea.</p>
+ <div class="row" style="flex-wrap:wrap"><select class="inp" style="flex:1 1 120px" id="sp-pro" aria-label="Profesional">${pros.map(p=>`<option value="${p.id}">${p.n}</option>`).join("")}</select><select class="inp" style="flex:1 1 120px" id="sp-d" aria-label="Día"><option>Vie 16 oct</option><option>Sáb 17 oct</option><option>Lun 19 oct</option></select><select class="inp" style="flex:1 1 150px" id="sp-k" aria-label="Tipo"><option>Cerrado</option><option>Vacaciones</option><option>Horario distinto</option></select><button class="btn" data-special>Agregar</button></div>
+ <div class="list" style="margin-top:10px">${specials.map(s=>`<div class="row small"><b>${P(s.pro).n}</b><span class="grow">${s.d}</span><span class="chip st-Pendiente">${s.k}${s.h?" · "+s.h:""}</span></div>`).join("")}</div>`}
+function secServices(){return ` <div class="row"><span class="grow muted small">Lo que ofreces, cuánto dura y cuánto cuesta.</span><button class="btn" style="padding:8px 12px" data-svcform>+ Nuevo servicio</button></div>
+ ${S.svcForm?`<div class="card soft" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"><div class="field"><label for="ns-n">Nombre</label><input class="inp" id="ns-n" placeholder="Ej. Corte con diseño"></div><div class="row" style="flex-wrap:wrap"><div class="field" style="flex:1 1 120px"><label for="ns-m">Duración</label><select class="inp" id="ns-m"><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1 h 30 min</option></select></div><div class="field" style="flex:1 1 120px"><label for="ns-p">Precio</label><input class="inp" id="ns-p" inputmode="numeric" placeholder="25000"></div></div><div class="field"><label>Quiénes lo hacen</label><div class="btns">${pros.map(p=>`<label class="check" style="align-items:center"><input type="checkbox" checked> ${p.n}</label>`).join("")}</div></div><div class="btns"><button class="btn" data-newsvc>Crear servicio</button><button class="btn quiet" data-svcform>Cancelar</button></div></div>`:""}
+ <div class="list" style="margin-top:10px">${services.map(s=>`<div class="row" style="${s.on?"":"opacity:.55"};flex-wrap:wrap"><span class="grow" style="min-width:120px"><b>${s.n}</b><br><select class="inp" style="padding:4px 8px;font-size:12.5px;width:auto;margin-top:4px" data-dur="${s.id}" aria-label="Duración de ${s.n}">${[30,45,60,90].map(m=>`<option value="${m}" ${s.m===m?"selected":""}>${m<60?m+" min":m===60?"1 hora":"1 h 30 min"}</option>`).join("")}</select></span><input class="inp" style="width:110px" inputmode="numeric" data-price="${s.id}" value="${s.p}" aria-label="Precio de ${s.n}"><button class="btn ${s.on?"quiet":"ghost"}" style="padding:8px 10px;font-size:13px;min-width:96px" data-toggle="${s.id}">${s.on?"Activo":"Inactivo"}</button></div>`).join("")}</div>`}
+const USERS=[{n:"Carlos Gómez",r:"Dueño",m:"carlos@elbigote.co"},{n:"Valentina Ruiz",r:"Recepción",m:"recepcion@elbigote.co"},{n:"Andrés",r:"Profesional",m:"andres@elbigote.co"},{n:"Camilo",r:"Profesional",m:"camilo@elbigote.co"},{n:"Julián",r:"Profesional",m:"julian@elbigote.co"}];
+function sec(id,title,sub,body,badge){const open=S.open.has(id);return `<div class="acc ${open?"open":""}"><button class="acc-h" data-sec="${id}" aria-expanded="${open}"><span class="grow"><b>${title}</b><br><span class="muted small">${sub}</span></span>${badge||""}<span class="acc-i" aria-hidden="true">${open?"−":"+"}</span></button>${open?`<div class="acc-b">${body}</div>`:""}</div>`}
+const STAFF={dueno:["Carlos Gómez","carlos@elbigote.co"],recepcion:["Valentina Ruiz","recepcion@elbigote.co"],profesional:["Andrés","andres@elbigote.co"]};
+const secTema=()=>sec("tema","Tema de la app",{light:"Claro",dark:"Oscuro",system:"Como mi dispositivo"}[S.theme]+" · solo para ti",themePick());
+function secPlan(){
+ const pl=PLANS[S.plan];
+ if(S.plan==="ilimitado")return sec("plan","Mi plan","Ilimitado · gracias por ser parte del proceso",`<div class="thanks"><h4>¡Gracias por ser parte de esto!</h4><div class="small" style="opacity:.95">Nos ayudaste a probar y mejorar esta app desde el primer día. Por eso ${esc(S.biz)} tiene el plan Ilimitado: todo el sistema y todas las actualizaciones, sin pagar nunca.</div></div><div class="list">${pl.inc.map(i=>`<div class="row small"><span style="color:var(--a-ok);font-weight:700">✓</span><span class="grow">${i}</span></div>`).join("")}</div><p class="muted small" style="margin:0">Este plan no se compra: lo asigna la plataforma.</p>`,'<span class="chip st-Completada">Ilimitado</span>');
+ const due={aldia:["15 nov",30,"var(--a-ok)","Al día"],pronto:["19 oct",3,"var(--a-warn)","Vence en 3 días"],gracia:["14 oct",0,"var(--a-err)","Pago pendiente"],suspendido:["9 oct",0,"var(--a-err)","Suspendido"]}[S.pay];
+ const alert=S.pay==="gracia"?`<div class="card small" style="border-color:var(--a-err)"><b style="color:var(--a-err)">No pudimos cobrar el pago del 14 oct.</b><br>Te quedan 3 días de gracia. Después, la app queda limitada hasta que pagues (D107).</div>`:S.pay==="suspendido"?`<div class="card small" style="border-color:var(--a-err)"><b style="color:var(--a-err)">Tu cuenta está limitada por falta de pago.</b><br>Puedes ver tus datos y atender las citas que ya tienes. Al pagar, todo vuelve a funcionar al instante.</div>`:S.pay==="pronto"?`<div class="card small" style="border-color:var(--a-warn)">Tu próximo cobro es el 19 oct. Si pagas con PSE, te enviamos el enlace ese día.</div>`:"";
+ return sec("plan","Mi plan",pl.n+" · "+due[3],`<div class="row"><div class="grow"><b style="font-size:18px">Plan ${pl.n}</b><div class="muted small">${money(pl.p)} al mes · precio de ejemplo, por definir</div></div><span class="chip" style="color:${due[2]}">${due[3]}</span></div>
+ ${S.pay==="aldia"||S.pay==="pronto"?`<div><div class="row small"><span class="grow muted">Próximo cobro: ${due[0]}</span><b>${due[1]} días</b></div><div class="meter" style="margin-top:6px;--c:${due[2]}"><i style="width:${Math.round(due[1]/30*100)}%"></i></div></div>`:""}
+ ${alert}
+ <div class="row small"><span class="grow muted">Medio de pago</span><b>Nequi •••• 4321 · débito automático</b></div>
+ <div class="list">${pl.inc.map(i=>`<div class="row small"><span style="color:var(--a-ok);font-weight:700">✓</span><span class="grow">${i}</span></div>`).join("")}</div>
+ <div class="btns">${S.pay!=="aldia"?`<button class="btn" data-paynow>Pagar ahora ${money(pl.p)}</button>`:""}<button class="btn ${S.pay==="aldia"?"":"ghost"}" data-plans>${S.plan==="pro"?"Cambiar de plan":"Subir de plan"}</button><button class="btn quiet" data-paymethod>Cambiar medio de pago</button></div>`,`<span class="chip" style="color:${due[2]}">${pl.n}</span>`);
+}
+function vAjustes(){
+ const [nm,ml]=STAFF[S.role]||["",""];
+ const common=`${sec("cuenta","Mi cuenta",esc(nm)+" · "+ROLES[S.role].replace(/ \(.*/,""),`<div class="field"><label for="m-n">Nombre</label><input class="inp" id="m-n" value="${esc(nm)}"></div><div class="field"><label>Correo para entrar</label><input class="inp" disabled value="${ml}"><span class="muted small">Solo el dueño puede cambiar el correo de un usuario.</span></div><label class="check"><input type="checkbox" checked> Avisarme por correo cuando me asignen una cita</label><div class="btns"><button class="btn quiet" data-pwd>Cambiar contraseña</button><button class="btn quiet" data-logout>Cerrar sesión</button></div>`)}
+ ${secTema()}`;
+ if(S.role!=="dueno")return common+(S.role==="profesional"?sec("mihor","Mi horario","Lo define el dueño",`<div class="small">${hText(pros[0])}</div><p class="muted small" style="margin:0">Si necesitas un cambio o un día libre, pídeselo al dueño.</p>`):"")+`<div class="card soft small muted">La marca, los servicios, los horarios y los usuarios los maneja el dueño del negocio.</div>`;
+ const ok=t=>`<span class="chip st-Completada">${t}</span>`, off=t=>`<span class="chip st-Cancelada">${t}</span>`;
+ const checklist=[["Marca del negocio",true],["Servicios con precio",services.some(s=>s.on)],["Profesionales y horarios",true],["Usuarios del personal",true],["Reserva en línea",S.cfg.booking]];
+ const done=checklist.filter(c=>c[1]).length;
+ const swatches=g=>Object.entries(PAL).filter(([k,v])=>(v.neon?"n":v.viva?"v":"s")===g).map(([k,v])=>`<button class="sw" title="${v.n}" aria-label="${v.n}" data-pal="${k}" aria-pressed="${S.pal===k}" style="background:${S.mode==="dark"?v.d[5]:v.l[5]}"></button>`).join("");
+ return `<div class="card soft"><div class="row"><b class="grow">Tu negocio está listo en ${done} de ${checklist.length}</b><span class="money">${Math.round(done/checklist.length*100)}%</span></div><div class="steps" style="margin:8px 0">${checklist.map(c=>`<i class="${c[1]?"on":""}"></i>`).join("")}</div><div class="btns">${checklist.map(c=>c[1]?ok("✓ "+c[0]):`<span class="chip st-Pendiente">Falta: ${c[0]}</span>`).join("")}</div></div>
+ ${secPlan()}
+ ${common}
+ ${sec("marca","Negocio y marca","Nombre, dirección, logo, paleta y tipografía. Se aplica a toda la app del negocio y a la de sus clientes.",`
+  <div class="field"><label for="b-n">Nombre del negocio</label><input class="inp" id="b-n" value="${esc(S.biz)}"></div>
+  <div class="field"><label for="b-s">Eslogan o descripción corta</label><input class="inp" id="b-s" maxlength="80" value="${esc(S.slogan)}"><span class="muted small">Sale debajo del nombre cuando se abre la app. Máximo 80 letras; puedes dejarlo vacío.</span></div>
+  <div class="row" style="flex-wrap:wrap"><div class="field" style="flex:2 1 220px"><label for="b-a">Dirección (para "Cómo llegar" en Google Maps)</label><input class="inp" id="b-a" value="${esc(S.addr)}"></div><div class="field" style="flex:1 1 120px"><label for="b-c">Ciudad</label><input class="inp" id="b-c" value="${esc(S.city)}"></div></div>
+  <div class="sub-h">Redes y WhatsApp</div><div class="row" style="flex-wrap:wrap">${SOC.map(([k,n])=>`<div class="field" style="flex:1 1 180px"><label for="s-${k}">${n}</label><input class="inp" id="s-${k}" data-soc="${k}" value="${esc(S.soc[k])}" placeholder="${k==="wa"?"+573001234567":"usuario, sin @"}"></div>`).join("")}</div><span class="muted small">Solo el usuario de cada red, no el enlace: la app arma el enlace. Las que llenes aparecen con su logo en la página de tus clientes. Vista previa: ${socLinks(30)||"ninguna todavía"}</span>
+  <div class="row" style="flex-wrap:wrap"><label class="btn quiet" style="cursor:pointer">${S.logo?"Cambiar logo":"Subir logo"}<input type="file" accept="image/png,image/webp,image/jpeg" hidden data-up="logo"></label><label class="btn quiet" style="cursor:pointer">${S.cover?"Cambiar portada":"Subir portada"}<input type="file" accept="image/png,image/webp,image/jpeg" hidden data-up="cover"></label>${S.logo||S.cover?'<button class="btn quiet" data-unbrand>Quitar imágenes</button>':""}<span class="muted small">PNG o WebP; la app genera los íconos y recorta la portada.</span></div>
+  <div class="field"><label>Paleta</label><div class="btns" style="align-items:center"><span class="muted small" style="width:56px">Sobrias</span>${swatches("s")}</div><div class="btns" style="align-items:center;margin-top:6px"><span class="muted small" style="width:56px">Vivas</span>${swatches("v")}</div><div class="btns" style="align-items:center;margin-top:6px"><span class="muted small" style="width:56px">Neón</span>${swatches("n")}</div></div>
+  <div class="field"><label>Tipografía</label><div class="btns">${Object.entries(TYPO).map(([k,v])=>`<button class="btn ${S.typo===k?"":"quiet"}" style="padding:7px 11px;font-family:'${v[1]}'" data-typo="${k}">${v[0]}</button>`).join("")}</div></div>
+  <div class="field"><label>Bordes</label><div class="btns"><button class="btn ${S.square?"quiet":""}" style="padding:7px 11px" data-sq="0">Redondeados</button><button class="btn ${S.square?"":"quiet"}" style="padding:7px 11px" data-sq="1">Rectos</button></div></div>
+  <p class="muted small" style="margin:0">El tema claro u oscuro no va aquí: lo elige cada persona arriba, en Tema de la app.</p>`)}
+ ${sec("servicios","Servicios",services.filter(s=>s.on).length+" activos",secServices())}
+ ${sec("profes","Profesionales y horarios",pros.length+" profesionales · días especiales",`${pros.map(p=>`<div class="row small"><b style="width:70px">${p.n}</b><span class="grow muted">${hText(p)}</span><button class="btn quiet" style="padding:5px 9px;font-size:12px" data-hor="${p.id}">Editar horario</button></div>`).join('<hr class="s">')}${secSpecials()}`)}
+ ${sec("usuarios","Usuarios y roles",USERS.length+" personas con acceso",`<div class="list">${USERS.map((u,i)=>`<button class="item" data-uedit="${i}"><span class="grow"><b>${esc(u.n)}</b><br><span class="muted small">${esc(u.m||"")}${u.r==="Profesional"&&PRO_OF[u.n]&&S.allAg[PRO_OF[u.n]]?" · Gestiona todas las agendas":""}</span></span><span class="chip ${u.off?"st-Cancelada":"st-Confirmada"}">${u.off?"Inactivo":u.r}</span></button>`).join("")}</div><p class="muted small" style="margin:0">Recepción y administradores gestionan todas las agendas. Cada profesional ve y cambia solo su agenda, salvo que le des el permiso. Toca a una persona para ver sus datos, cambiarlos y darle permisos.</p><button class="btn ghost" data-adduser>+ Agregar usuario</button><p class="muted small" style="margin:0">Cada usuario entra con su correo. Desactivar a alguien le cierra la sesión al instante.</p>`)}
+ ${sec("reserva","Reserva en línea","Qué pueden hacer tus clientes desde su celular",`<label class="check"><input type="checkbox" data-cfg="booking" ${S.cfg.booking?"checked":""}> Los clientes pueden reservar en línea</label><div class="row" style="flex-wrap:wrap"><div class="field" style="flex:1 1 150px"><label for="r-c">Cancelar gratis hasta</label><select class="inp" id="r-c" disabled><option>1 hora antes</option><option selected>2 horas antes</option><option>24 horas antes</option></select></div><div class="field" style="flex:1 1 150px"><label for="r-m">Citas activas por cliente</label><select class="inp" id="r-m" disabled><option>1</option><option selected>2</option><option>3</option></select></div></div><p class="muted small" style="margin:0">Durante el piloto estas reglas son solo para ver. Si necesitas cambiarlas, escríbenos.</p>`,S.cfg.booking?ok("Activa"):off("Apagada"))}
+ ${sec("caja","Caja",S.cfg.cash?"Encendida · aparece en el menú":"Apagada · no aparece en el menú",`<label class="check"><input type="checkbox" data-cfg="cash" ${S.cfg.cash?"checked":""}> Usar caja para controlar el efectivo</label><div class="card soft small"><b>Cómo funciona</b><br>La caja nunca se abre ni se cierra. Cada pago en efectivo suma solo. Las entradas y salidas manuales (cambio, compras pequeñas) se anotan con su motivo. Cuando quieras, cuentas los billetes y la app te dice si sobra o falta.</div><p class="muted small" style="margin:0">Si la apagas, la opción Caja desaparece del menú de todos y los pagos en efectivo se registran igual, sin caja. Puedes encenderla cuando quieras.</p>`,S.cfg.cash?ok("Encendida"):off("Apagada"))}
+ ${sec("wompi","Pagos en línea (Wompi)","Llaves de tu cuenta de Wompi. El dinero va directo a tu cuenta.",`<div class="card soft small">Se activa en la ola 2 del piloto.</div><div class="field"><label>Llave pública</label><input class="inp" disabled value="pub_test_••••••••3kQ"></div><div class="field"><label>Llave privada</label><input class="inp" disabled value="••••••••••••••••"></div><div class="field"><label>Secreto de eventos y de integridad</label><input class="inp" disabled value="••••••••••••••••"></div><p class="muted small" style="margin:0">Las llaves se guardan cifradas y nunca se vuelven a mostrar completas.</p>`,off("Ola 2"))}
+ ${sec("tienda","Tienda en línea y entregas","Catálogo, recoger en el local o domicilio con tarifa",`<div class="card soft small">Se activa en la ola 2 del piloto, después de revisar los términos de venta.</div>`,off("Ola 2"))}`;
+}
+function freeSlots(proId,svcId,day){
+ const len=V(svcId).m, out=[];
+ for(let m=t(9);m+len<=t(19);m+=30){
+  if(m<t(14)&&m+len>t(13))continue;
+  if(day===0&&m<=NOW)continue;
+  if(day===0&&appts.some(a=>a.pro===proId&&a.st!=="Cancelada"&&a.start<m+len&&m<a.start+V(a.svc).m))continue;
+  out.push(m);
+ }
+ return out;
+}
+const DAYS=["Hoy","Vie 16","Sáb 17","Lun 19","Mar 20"];
+function wizard(){
+ const w=S.wiz, stepN=w.step;
+ let body="";
+ if(stepN===1){
+  const q=(w.q||"").toLowerCase();
+  body=`<h3>¿Para quién es la cita?</h3><input class="inp" id="q-wiz" placeholder="Buscar cliente" value="${esc(w.q||"")}"><div class="list">${customers.filter(c=>!q||c.n.toLowerCase().includes(q)).slice(0,5).map(c=>`<button class="item" data-wcus="${c.id}"><b class="grow">${esc(c.n)}</b><span class="muted small">${c.t}</span></button>`).join("")}</div><button class="btn ghost" data-go="newcus">+ Cliente nuevo</button>`;
+ }else if(stepN===2){
+  body=`<h3>Servicio y profesional</h3><div class="list">${services.filter(s=>s.on).map(s=>`<button class="item ${w.svc===s.id?"sel":""}" data-wsvc="${s.id}"><span class="grow"><b>${s.n}</b><br><span class="muted small">${s.m} min</span></span><span class="money">${money(s.p)}</span></button>`).join("")}</div>
+  ${w.svc?`<div class="btns">${pros.filter(p=>canManage(p.id)).map(p=>`<button class="btn ${w.pro===p.id?"":"quiet"}" data-wpro="${p.id}">${p.n}</button>`).join("")}</div>${S.role==="profesional"&&!S.allAg[ME]?'<p class="muted small" style="margin:0">Solo puedes agendar en tu agenda. Para agendar con otro profesional, pídeselo a recepción.</p>':""}`:""}`;
+ }else{
+  const sl=freeSlots(w.pro,w.svc,0);
+  body=`<h3>Hora, hoy</h3><p class="muted small" style="margin:0">${esc(C(w.cus).n)} · ${V(w.svc).n} con ${P(w.pro).n}</p><div class="slots">${sl.map(m=>`<button class="slot" data-wtime="${m}">${hm(m)}</button>`).join("")||'<span class="muted">No quedan horas hoy.</span>'}</div>`;
+ }
+ return `<div class="row"><b class="grow">Agendar cita</b><button class="btn quiet" style="padding:6px 10px" data-close>Cerrar</button></div><div class="steps">${[1,2,3].map(i=>`<i class="${i<=stepN?"on":""}"></i>`).join("")}</div>${body}${stepN>1?`<button class="btn quiet" data-wback>← Atrás</button>`:""}`;
+}
+function apptSheet(a){
+ const s=V(a.svc), acts=[];
+ if(a.st==="Pendiente")acts.push(["Confirmada","Confirmar",""],["En curso","Iniciar","ghost"]);
+ if(a.st==="Confirmada")acts.push(["En curso","Iniciar",""]);
+ if(a.st==="En curso")acts.push(["Completada","Completar",""]);
+ if(a.st==="Completada"){const sale=sales.find(x=>x.appt===a.id);if(sale)acts.push(["cobrar:"+sale.id,sale.st==="Pagada"?"Ver venta":"Cobrar",""]);}
+ if(["Pendiente","Confirmada"].includes(a.st))acts.push(["Cancelada","Cancelar","danger"],["No llegó","No llegó","danger"]);
+ const mine=canManage(a.pro);
+ return `<div class="row"><h3 class="grow">${esc(C(a.cus).n)}</h3>${chip(a.st)}</div>
+ <div class="card soft"><div class="row"><span class="grow">${s.n}</span><span class="money">${money(s.p)}</span></div><div class="muted small" style="margin-top:4px">Hoy ${hm(a.start)} a ${hm(a.start+s.m)} · ${P(a.pro).n}</div></div>
+ ${mine?`<div class="btns">${acts.map(([k,l,c])=>`<button class="btn ${c}" data-act="${k}" data-id="${a.id}">${l}</button>`).join("")}</div>`:`<div class="card soft small">Solo puedes ver esta cita: es de ${P(a.pro).n}. La gestionan ${P(a.pro).n}, recepción o el dueño.</div>`}
+ <button class="btn quiet" data-close>Cerrar</button>`;
+}
+function newCusSheet(){
+ return `<h3>Cliente nuevo</h3><div class="field"><label for="nc-n">Nombre</label><input class="inp" id="nc-n" placeholder="Nombre y apellido"></div><div class="field"><label for="nc-t">Teléfono</label><input class="inp" id="nc-t" inputmode="tel" placeholder="300 000 0000"></div><div class="field"><label for="nc-e">Correo</label><input class="inp" id="nc-e" type="email" inputmode="email" placeholder="nombre@correo.com"><span class="muted small">Con el correo, cuando el cliente reserve en línea se une a esta misma ficha y conserva su historial. </span><label class="check"><input type="checkbox" id="nc-no"> No tiene correo</label></div>${S.ncErr?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${S.ncErr}</div>`:""}<label class="check"><input type="checkbox" id="nc-ok"> El cliente autoriza recibir recordatorios de sus citas.</label><div class="btns"><button class="btn" data-savecus>Guardar</button><button class="btn quiet" data-close>Cancelar</button></div>`;
+}
+function directSheet(){
+ return `<h3>Venta directa</h3><p class="muted small" style="margin:0">Para quien solo compra un producto, sin cita.</p><div class="list">${customers.slice(0,4).map(c=>`<button class="item" data-dcus="${c.id}"><b class="grow">${esc(c.n)}</b></button>`).join("")}</div><button class="btn quiet" data-close>Cancelar</button>`;
+}
+
+// ---------- Vistas del cliente ----------
+function vNegocio(){
+ return `<div class="cover" style="${S.cover?`background:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.55)),url(${S.cover}) center/cover;color:#fff`:""}">${LOGO()}<h3>${esc(S.biz)}</h3><div style="opacity:.9;font-size:13.5px;margin-top:4px">${esc(S.addr)} · Abierto hasta las 7:00 p. m.</div><div class="btns" style="margin-top:14px;position:relative;z-index:1"><button class="btn" style="background:var(--a-on);color:var(--a-primary)" data-go="reservar">Reservar</button><button class="btn" style="background:transparent;border:1.5px solid var(--a-on);color:var(--a-on)" data-maps>Cómo llegar</button></div></div>
+ <h3>Servicios</h3><div class="list">${services.filter(s=>s.on).map(s=>`<button class="item" data-csvc="${s.id}"><span class="grow"><b>${s.n}</b><br><span class="muted small">${s.m} min</span></span><span class="money">${money(s.p)}</span></button>`).join("")}</div>
+ <h3>Nuestro equipo</h3><div class="btns">${pros.map(p=>`<span class="pill" style="font-size:13.5px;padding:7px 12px">${p.n}</span>`).join("")}</div>`;
+}
+function vReservar(){
+ const b=S.client.book||(S.client.book={step:1});
+ const head=`<div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=b.step?"on":""}"></i>`).join("")}</div>`;
+ if(b.step===1)return head+`<h3>Elige el servicio</h3><div class="list">${services.filter(s=>s.on).map(s=>`<button class="item" data-bsvc="${s.id}"><span class="grow"><b>${s.n}</b><br><span class="muted small">${s.m} min</span></span><span class="money">${money(s.p)}</span></button>`).join("")}</div>`;
+ if(b.step===2)return head+`<h3>¿Con quién?</h3><div class="list"><button class="item" data-bpro="any"><span class="grow"><b>El primero disponible</b><br><span class="muted small">Te damos la hora más cercana con cualquiera</span></span></button>${pros.map(p=>`<button class="item" data-bpro="${p.id}"><b class="grow">${p.n}</b></button>`).join("")}</div><button class="btn quiet" data-bback>← Atrás</button>`;
+ if(b.step===3){
+  const day=b.day||0;
+  const sl=b.pro==="any"?[...new Set(pros.flatMap(p=>freeSlots(p.id,b.svc,day)))].sort((x,y)=>x-y):freeSlots(b.pro,b.svc,day);
+  return head+`<h3>Elige día y hora</h3><div class="btns">${DAYS.map((d,i)=>`<button class="btn ${day===i?"":"quiet"}" style="padding:7px 12px" data-bday="${i}">${d}</button>`).join("")}</div><div class="slots">${sl.map(m=>`<button class="slot" data-btime="${m}">${hm(m)}</button>`).join("")||'<span class="muted">No quedan horas este día.</span>'}</div><button class="btn quiet" data-bback>← Atrás</button>`;
+ }
+ const proName=b.pro==="any"?P(pros.find(p=>freeSlots(p.id,b.svc,b.day||0).includes(b.time)).id).n:P(b.pro).n;
+ b.proName=proName;
+ if(!S.client.logged)return head+vEntrar();
+ return head+`<h3>Confirma tu cita</h3><div class="card soft"><b>${V(b.svc).n}</b><div class="muted small" style="margin-top:4px">${DAYS[b.day||0]} a las ${hm(b.time)} con ${proName} · ${money(V(b.svc).p)}, pagas en el local</div></div><p class="muted small" style="margin:0">Puedes cancelar sin costo hasta 2 horas antes.</p><button class="btn block" data-bconfirm>Confirmar reserva</button><button class="btn quiet" data-bback>← Cambiar hora</button>`;
+}
+function vEntrar(){
+ const e=S.client.entry||(S.client.entry={step:1});
+ if(e.step===1)return `<h3>Entra para reservar</h3><p class="muted small" style="margin:0">Te enviamos un código a tu correo. Sin contraseñas.</p><div class="field"><label for="ce">Correo</label><input class="inp" id="ce" inputmode="email" value="${esc(e.mail||"")}" placeholder="tucorreo@ejemplo.com"></div><button class="btn block" data-csend>Enviarme el código</button><p class="muted small" style="margin:0"><span class="pill">Demo</span> Prueba con <b>laura.gomez@correo.co</b> (ya es clienta) o con cualquier otro correo.</p>`;
+ if(e.step===2)return `<h3>Revisa tu correo</h3><p class="muted small" style="margin:0">Escribe el código de 6 dígitos que enviamos a ${esc(e.mail)}. <span class="pill">Demo: 482913</span></p><input class="inp code" id="cc" maxlength="6" inputmode="numeric" placeholder="······" aria-label="Código"><button class="btn block" data-cverify>Entrar</button>`;
+ if(e.step==="phone")return `<h3>¿Ya has venido a ${esc(S.biz)}?</h3><p class="muted small" style="margin:0">Tu correo quedó verificado. Si ya te atendieron, escribe tu celular y te enviamos un código por SMS para unir tu cuenta con tu historial.</p><div class="field"><label for="cp">Celular</label><input class="inp" id="cp" inputmode="tel" placeholder="300 000 0000" value="${esc(e.phone||"")}"></div><button class="btn block" data-csms>Enviarme el código por SMS</button><button class="btn quiet block" data-cnew>Es mi primera vez</button><p class="muted small" style="margin:0"><span class="pill">Demo</span> Mateo vino al local sin correo: <b>315 220 7714</b></p>`;
+ if(e.step==="sms")return `<h3>Confirma tu celular</h3><p class="muted small" style="margin:0">Para proteger tus datos, confirmamos que el celular es tuyo. Si ese número está registrado en ${esc(S.biz)}, te llegó un SMS con un código de 6 dígitos. <span class="pill">Demo: 735104</span></p><input class="inp code" id="cs" maxlength="6" inputmode="numeric" placeholder="······" aria-label="Código del SMS">${e.err?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${e.err}</div>`:""}<button class="btn block" data-csmsok>Verificar</button><button class="btn quiet block" data-cnew>No me llegó: soy cliente nuevo</button>`;
+ return `<h3>Tu primera vez aquí</h3>${e.err?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${e.err}</div>`:""}<div class="field"><label for="cn">Nombre</label><input class="inp" id="cn" placeholder="Nombre y apellido"></div><div class="field"><label for="ct">Teléfono</label><input class="inp" id="ct" inputmode="tel" placeholder="300 000 0000" value="${esc(e.phone||"")}"></div><label class="check"><input type="checkbox" id="ck1"> Acepto la política de tratamiento de datos de ${esc(S.biz)}.</label><label class="check"><input type="checkbox" id="ck2" checked> Quiero recibir recordatorios de mis citas.</label><button class="btn block" data-creg>Continuar</button>`;
+}
+function vMisCitas(){
+ if(!S.client.logged)return vEntrar();
+ const up=myAppts.filter(a=>!a.past&&a.st!=="Cancelada"), past=myAppts.filter(a=>a.past||a.st==="Cancelada");
+ return `<h3>Próximas</h3><div class="list">${up.map(a=>`<div class="card"><div class="row"><div class="grow"><b>${V(a.svc).n}</b><div class="muted small">${a.day} · ${a.time} · ${a.pro==="any"?a.proName:P(a.pro).n}</div></div>${chip(a.st)}</div><button class="btn danger" style="margin-top:10px;padding:7px 12px" data-ccancel="${myAppts.indexOf(a)}">Cancelar cita</button></div>`).join("")||'<p class="muted" style="margin:0">No tienes citas próximas.</p>'}</div>
+ <button class="btn" data-go="reservar">Reservar otra</button><h3>Pasadas</h3><div class="list">${past.map(a=>`<div class="row small"><span class="grow">${V(a.svc).n} · ${a.day}</span>${chip(a.st)}</div>`).join("")}</div>`;
+}
+function vCuenta(){
+ if(!S.client.logged)return vEntrar();
+ return `${sec("cuenta","Mi cuenta",esc(S.client.name||"Laura Gómez"),`${["mail","phone"].map(k=>{const lab=k==="mail"?"Correo":"Celular",val=S.client[k]||(k==="mail"?"laura.gomez@correo.co":"300 412 8890"),ed=S.client.edit;
+  if(ed&&ed.k===k)return ed.step===1?`<div class="field"><label for="cx">${lab} nuevo</label><input class="inp" id="cx" inputmode="${k==="mail"?"email":"tel"}" value="${esc(ed.v||"")}">${ed.err?`<span class="small" style="color:var(--a-err)">${ed.err}</span>`:""}<div class="btns"><button class="btn" data-cxsend>Enviar código</button><button class="btn quiet" data-cxno>Cancelar</button></div></div>`
+   :`<div class="field"><label for="cy">Código enviado a ${esc(ed.v)} <span class="pill">Demo: 482913</span></label><input class="inp code" id="cy" maxlength="6" inputmode="numeric">${ed.err?`<span class="small" style="color:var(--a-err)">${ed.err}</span>`:""}<div class="btns"><button class="btn" data-cxok>Verificar y guardar</button><button class="btn quiet" data-cxno>Cancelar</button></div></div>`;
+  return `<div class="field"><label>${lab}</label><div class="row"><input class="inp grow" disabled value="${esc(val)}">${k==="mail"?`<button class="btn quiet" data-cxedit="${k}">Cambiar</button>`:""}</div>${k==="phone"?`<span class="muted small">Para cambiar tu celular, pídeselo al negocio.</span>`:""}</div>`}).join("")}<span class="muted small">Para cambiar tu correo te enviamos un código al correo nuevo. Así nadie más puede cambiarlo.</span><label class="check"><input type="checkbox" checked> Recibir recordatorios de mis citas</label><button class="btn quiet" data-clogout>Cerrar sesión</button>`)}
+ ${secTema()}
+ ${S.client.del?`<div class="card" style="border-color:var(--a-err)"><b>¿Eliminar tu cuenta?</b><p class="small muted" style="margin:6px 0 10px">Se borran tu acceso y tus datos personales. El negocio conserva el registro de las ventas, como exige la ley.</p><div class="btns"><button class="btn danger" data-cdelok>Sí, eliminar</button><button class="btn quiet" data-cdelno>No</button></div></div>`:`<button class="btn danger" data-cdel>Eliminar mi cuenta</button>`}`;
+}
+function vLogin(){
+ return `<div style="max-width:360px;margin:auto;width:100%;display:flex;flex-direction:column;gap:14px;padding:20px 0"><div class="row">${LOGO()}<div><b style="font-family:var(--f-head);font-size:17px">${esc(S.biz)}</b><div class="muted small">Entrada del personal</div></div></div>
+ <div class="field"><label for="le">Correo</label><input class="inp" id="le" value="recepcion@elbigote.co"></div><div class="field"><label for="lp">Contraseña</label><input class="inp" id="lp" type="password" value="demo-demo"></div>
+ <button class="btn block" data-login>Entrar</button><button class="btn quiet" data-forgot>Olvidé mi contraseña</button>${S.forgot?'<div class="card soft small">Te enviamos un código a tu correo para crear una contraseña nueva.</div>':""}
+ <p class="muted small" style="margin:0">La sesión dura todo el turno (12 horas). Si el dueño te desactiva, se cierra al instante.</p></div>`;
+}
+
+// ---------- Render ----------
+let _lastKey="";
+function render(){
+ const key=S.role+"|"+S.view+"|"+S.saleId+"|"+S.cusId, sc=document.querySelector("#app .scroll"), top=sc?sc.scrollTop:0, wy=scrollY;
+ _render();
+ const ap=document.querySelector("#app");if(S.splash&&ap&&!ap.querySelector(".splash"))ap.insertAdjacentHTML("beforeend",SPLASH());
+ if(key===_lastKey){const n=document.querySelector("#app .scroll");if(n)n.scrollTop=top;scrollTo(0,wy)}
+ _lastKey=key;
+}
+function _render(){
+ bench();
+ const app=$("#app"), pal=PAL[S.pal][S.mode==="dark"?"d":"l"], ty=TYPO[S.typo];
+ KEYS.forEach((k,i)=>app.style.setProperty(k,pal[i]));
+ app.style.setProperty("--f-head",`"${ty[1]}",ui-sans-serif,system-ui,sans-serif`);
+ app.style.setProperty("--f-body",`"${ty[2]}",ui-sans-serif,system-ui,sans-serif`);
+ const r=S.square?[2,4,6]:[8,12,20];["--r-s","--r-m","--r-l"].forEach((k,i)=>app.style.setProperty(k,r[i]+"px"));
+ app.classList.toggle("phone",S.dev==="phone");
+ const client=S.role==="cliente";
+ if(S.role==="entrada"){
+  $("#slice").textContent=SLICE.entrada;
+  app.innerHTML=`<div class="main"><div class="scroll">${vLogin()}</div></div>${S.toast?`<div class="toast">${S.toast}</div>`:""}`;return;
+ }
+ const nav=NAV[S.role].filter(n=>n[0]!=="caja"||S.cfg.cash); if(!nav.some(n=>n[0]===S.view))S.view=nav[0][0];
+ $("#slice").textContent="Rebanada "+SLICE[S.view];
+ const title=nav.find(n=>n[0]===S.view)[1];
+ const views={inicio:vInicio,agenda:vAgenda,clientes:vClientes,cobrar:vCobrar,caja:vCaja,ajustes:vAjustes,negocio:vNegocio,reservar:vReservar,miscitas:vMisCitas,cuenta:vCuenta};
+ const mobileNav=client?nav:nav.slice(0,4).concat(nav.length>4?[["mas","Más"]]:[]);
+ let sheet="";
+ if(S.sheet){
+  let inner="";
+  if(S.sheet.type==="appt")inner=apptSheet(appts.find(a=>a.id===S.sheet.id));
+  if(S.sheet.type==="wiz")inner=wizard();
+  if(S.sheet.type==="newcus")inner=newCusSheet();
+  if(S.sheet.type==="direct")inner=directSheet();
+  if(S.sheet.type==="mas")inner=`<h3>Más</h3><div class="list">${nav.slice(4).map(([k,l])=>`<button class="item" data-view="${k}">${ico(k)}<b class="grow">${l}</b></button>`).join("")}<button class="item" data-logout><b class="grow">Cerrar sesión</b></button></div><button class="btn quiet" data-close>Cerrar</button>`;
+  if(S.sheet.type==="cuenta")inner=`<h3>Mi cuenta</h3><div class="card"><b>${ROLES[S.role]}</b><div class="muted small">${S.role==="dueno"?"carlos@elbigote.co":S.role==="profesional"?"andres@elbigote.co":"recepcion@elbigote.co"}</div></div>${themePick()}<button class="btn quiet" data-close>Cerrar</button>`;
+  if(S.sheet.type==="hor"){const p=pros.find(x=>x.id===S.sheet.id),h=H(p);inner=`<h3>Horario de ${p.n}</h3><div class="field"><label>Días que trabaja</label><div class="row" style="flex-wrap:wrap;gap:6px">${WDAYS.map((x,i)=>`<label class="check" style="min-width:60px"><input type="checkbox" data-hd="${i}" ${h.d[i]?"checked":""}> ${x}</label>`).join("")}</div></div><div class="row"><div class="field grow"><label for="h-f">Desde</label><input class="inp" type="time" id="h-f" value="${h.from}"></div><div class="field grow"><label for="h-t">Hasta</label><input class="inp" type="time" id="h-t" value="${h.to}"></div></div><label class="check"><input type="checkbox" id="h-l" ${h.lunch?"checked":""}> Tiene almuerzo</label><div class="row"><div class="field grow"><label for="h-lf">Almuerzo desde</label><input class="inp" type="time" id="h-lf" value="${h.lf}"></div><div class="field grow"><label for="h-lt">Hasta</label><input class="inp" type="time" id="h-lt" value="${h.lt}"></div></div>${S.sheet.err?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${S.sheet.err}</div>`:""}<p class="muted small" style="margin:0">Las citas ya agendadas no se mueven. Si alguna queda por fuera, te avisamos en Pendientes.</p><div class="btns"><button class="btn" data-horsave="${p.id}">Guardar horario</button><button class="btn quiet" data-close>Cancelar</button></div>`}
+  if(S.sheet.type==="confirm"){const o=S.sheet;inner=`<h3>${o.title}</h3><div class="card soft">${o.text}</div><p class="muted small" style="margin:0">${o.note}</p><div class="btns"><button class="btn danger" ${o.attrs}>${o.yes}</button><button class="btn quiet" data-confback>No, volver</button></div>`}
+  if(S.sheet.type==="uedit"){const u=USERS[S.sheet.i],own=u.r==="Dueño",pid=PRO_OF[u.n];inner=`<div class="row"><h3 class="grow">${esc(u.n)}</h3><span class="chip ${u.off?"st-Cancelada":"st-Confirmada"}">${u.off?"Inactivo":"Activo"}</span></div><div class="field"><label for="ue-n">Nombre</label><input class="inp" id="ue-n" value="${esc(u.n)}"></div><div class="field"><label for="ue-m">Correo para entrar</label><input class="inp" id="ue-m" type="email" value="${esc(u.m)}"><span class="muted small">Si lo cambias, le llega un correo al nuevo para confirmarlo.</span></div><div class="field"><label for="ue-r">Rol</label>${own?`<input class="inp" disabled value="Dueño"><span class="muted small">El rol de dueño no se cambia desde aquí.</span>`:`<select class="inp" id="ue-r">${["Recepción","Profesional","Administrador"].map(r=>`<option ${u.r===r?"selected":""}>${r}</option>`).join("")}</select>`}</div><div class="sub-h">Permisos</div>${own?`<p class="muted small" style="margin:0">El dueño tiene todos los permisos.</p>`:u.r==="Profesional"?`<label class="check"><input type="checkbox" id="ue-all" ${pid&&S.allAg[pid]?"checked":""}> Puede gestionar las agendas de todos</label><p class="muted small" style="margin:0">Sin este permiso solo ve y cambia su propia agenda.</p>`:`<p class="muted small" style="margin:0">${u.r==="Recepción"?"Gestiona todas las agendas, clientes y cobros.":"Todo, menos cambiar el rol del dueño."}</p>`}${S.sheet.err?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${S.sheet.err}</div>`:""}<div class="btns"><button class="btn" data-uesave="${S.sheet.i}">Guardar cambios</button>${own?"":`<button class="btn ${u.off?"ghost":"danger"}" data-uoff="${S.sheet.i}">${u.off?"Activar":"Desactivar"}</button>`}<button class="btn quiet" data-close>Cerrar</button></div>`}
+  if(S.sheet.type==="user")inner=`<h3>Agregar usuario</h3><div class="field"><label for="u-n">Nombre</label><input class="inp" id="u-n" value="${esc(S.sheet.n||"")}"></div><div class="field"><label for="u-m">Correo</label><input class="inp" id="u-m" type="email" value="${esc(S.sheet.m||"")}"></div><div class="field"><label for="u-r">Rol</label><select class="inp" id="u-r">${["Recepción","Profesional","Administrador"].map(r=>`<option ${S.sheet.r===r?"selected":""}>${r}</option>`).join("")}</select></div>${S.sheet.err?`<div class="card small" style="border-color:var(--a-err);color:var(--a-err)">${S.sheet.err}</div>`:""}<p class="muted small" style="margin:0">Le llega un correo para crear su contraseña. Solo el dueño puede dar el rol de administrador.</p><div class="btns"><button class="btn" data-usersave>Agregar y enviar invitación</button><button class="btn quiet" data-close>Cancelar</button></div>`;
+  if(S.sheet.type==="done"){const s=sales.find(x=>x.id===S.sheet.id);inner=`<div style="text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:56px;height:56px;border-radius:50%;background:var(--a-ok);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:700">✓</div><h3 style="font-size:20px">Venta confirmada</h3><div class="money" style="font-size:26px">${money(total(s))}</div><div class="muted">${esc(C(s.cus).n)} · ${s.at}</div></div><div class="card soft">${s.items.map(i=>`<div class="row small"><span class="grow">${i.n}</span><span class="money">${money(i.p)}</span></div>`).join("")}<hr class="s" style="margin:8px 0">${s.pays.map(p=>`<div class="row small"><span class="grow">Pagó con ${p.m}</span><span class="money">${money(p.a)}</span></div>`).join("")}</div><button class="btn block" data-close>Listo</button>`}
+  if(S.sheet.type==="ok"){const o=S.sheet,col=o.tone==="warn"?"var(--a-warn)":o.tone==="err"?"var(--a-err)":"var(--a-ok)";inner=`<div style="text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:56px;height:56px;border-radius:50%;background:${col};color:#fff;display:grid;place-items:center;font-size:28px;font-weight:700">${o.tone==="ok"?"✓":"!"}</div><h3 style="font-size:20px">${o.title}</h3></div><div class="card soft">${o.lines.map(([a,b])=>`<div class="row small" style="padding:3px 0"><span class="grow muted">${a}</span><b>${b}</b></div>`).join("")}</div>${o.extra||""}<button class="btn ${o.extra?"quiet":""} block" data-close>Listo</button>`}
+  if(S.sheet.type==="plans")inner=`<h3>Elige tu plan</h3><div class="list">${["basico","medio","pro"].map(k=>{const v=PLANS[k];return `<div class="card ${S.plan===k?"soft":""}"><div class="row"><b class="grow">${v.n}</b><span class="money">${money(v.p)}/mes</span></div><div class="muted small" style="margin:6px 0">${v.inc.join(" · ")}</div>${S.plan===k?'<span class="chip st-Completada">Tu plan actual</span>':`<button class="btn" style="padding:8px 12px" data-pickplan="${k}">Elegir ${v.n}</button>`}</div>`}).join("")}</div><p class="muted small" style="margin:0">Precios de ejemplo. El cambio aplica desde tu próximo cobro.</p><button class="btn quiet" data-close>Cerrar</button>`;
+  if(S.sheet.type==="bell")inner=`<h3>Avisos</h3><div class="list">${noticeList()}</div><button class="btn quiet" data-close>Cerrar</button>`;
+  sheet=`<div class="sheet-wrap" data-scrim><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+ }
+ app.innerHTML=`<aside class="side"><div class="brand">${LOGO()}<div><b>${esc(S.biz)}</b><small>${client?"Reservas en línea":"El Poblado"}</small></div></div>${nav.map(([k,l])=>`<button class="nav" data-view="${k}" ${S.view===k?'aria-current="page"':""}>${ico(k)}${l}</button>`).join("")}<div class="who">${client?(S.client.logged?"Entraste como "+esc(S.client.name||"Laura Gómez"):"No has entrado"):ROLES[S.role]+'<br><button class="nav" style="padding:6px 0;font-size:12.5px;color:var(--a-muted)" data-logout>Cerrar sesión</button>'}</div></aside>
+ <div class="main"><div class="top"><h2>${client&&S.view==="negocio"?S.biz:title}</h2>${S.role==="dueno"?`<button class="bell" data-bell aria-label="Avisos">${'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/></svg>'}<i>${notices.length}</i></button>`:""}</div>
+ <div class="scroll">${views[S.view]()}${client?FOOT():""}</div>
+ <nav class="tabbar">${mobileNav.map(([k,l])=>`<button class="tab" data-view="${k}" ${S.view===k?'aria-current="page"':""}>${ico(k==="mas"?"ajustes":k)}${l}</button>`).join("")}</nav></div>
+ ${sheet}${S.toast?`<div class="toast">${S.toast}</div>`:""}`;
+}
+
+// ---------- Interacción ----------
+document.addEventListener("input",e=>{
+ if(e.target.id==="q-cus"){S.q=e.target.value;const pos=e.target.selectionStart;render();const i=$("#q-cus");i.focus();i.setSelectionRange(pos,pos)}
+ if(e.target.id==="q-wiz"){S.wiz.q=e.target.value;const pos=e.target.selectionStart;render();const i=$("#q-wiz");i.focus();i.setSelectionRange(pos,pos)}
+});
+document.addEventListener("change",e=>{
+ const d=e.target.dataset;
+ if(d.price){V(d.price).p=Math.max(0,parseInt(e.target.value.replace(/\D/g,""))||0);toast("Precio actualizado");}
+ if(d.dur){V(d.dur).m=+e.target.value;toast("Duración actualizada");}
+ if(d.up&&e.target.files[0]){const f=e.target.files[0];if(f.size>5e6){return ok("Imagen muy pesada",[["Archivo",esc(f.name)],["Máximo","5 MB"]],"err")}const r=new FileReader();r.onload=()=>{S[d.up]=r.result;ok(d.up==="logo"?"Logo actualizado":"Portada actualizada",[["Archivo",esc(f.name)],["Se ve en","Menú, entrada y página de reservas"]])};r.readAsDataURL(f)}
+ if(e.target.id==="b-n"){const v=e.target.value.trim();if(v.length<2||v.length>60){e.target.value=S.biz;return toast("El nombre debe tener entre 2 y 60 letras")}S.biz=v;toast("Nombre actualizado");render()}
+ if(e.target.id==="b-s"){S.slogan=e.target.value.trim().slice(0,80);toast(S.slogan?"Eslogan actualizado":"Eslogan quitado");render()}
+ if(e.target.id==="b-c"){S.city=e.target.value.trim().slice(0,80);toast("Ciudad actualizada");render()}
+ if(d.soc){let v=e.target.value.trim();const n=SOC.find(x=>x[0]===d.soc)[1];
+  if(d.soc==="wa"){v=v.replace(/[\s-]/g,"");if(/^3\d{9}$/.test(v))v="+57"+v;if(v&&!/^\+573\d{9}$/.test(v)){e.target.value=S.soc.wa;return ok("WhatsApp no válido",[["Escribiste",esc(e.target.value)],["Formato","Celular colombiano: +57 y 10 dígitos"]],"err")}}
+  else{v=v.replace(/^@/,"");if(/^https?:|\//.test(v)){e.target.value=S.soc[d.soc];return ok(n+": solo el usuario",[["Escribiste","Un enlace"],["Escribe","Solo el usuario, por ejemplo barberiaelbigote"]],"err")}if(v&&!/^[A-Za-z0-9._]{1,50}$/.test(v)){e.target.value=S.soc[d.soc];return ok(n+" no válido",[["Permitido","Letras, números, punto y guion bajo"]],"err")}}
+  S.soc[d.soc]=v;toast(v?n+" guardado":n+" quitado");render()}
+ if(e.target.id==="b-a"){S.addr=e.target.value.trim().slice(0,120);toast("Dirección actualizada");render()}
+ if(d.allag){S.allAg[d.allag]=e.target.checked;const n=P(d.allag).n;return ok(e.target.checked?"Permiso dado":"Permiso quitado",[["Profesional",n],["Ahora",e.target.checked?"Ve y gestiona todas las agendas":"Solo ve y gestiona su propia agenda"],["Sesión","Se le cierra para aplicar el cambio"]],e.target.checked?"ok":"warn")}
+ if(d.cfg){S.cfg[d.cfg]=e.target.checked;
+  if(d.cfg==="cash"){if(!S.cfg.cash)notices=notices.filter(n=>n.go!=="view:caja");return ok(S.cfg.cash?"Caja encendida":"Caja apagada",S.cfg.cash?[["Menú","Caja aparece para el personal"],["Efectivo","Cada pago en efectivo suma a la caja"]]:[["Menú","Caja ya no aparece"],["Efectivo","Se sigue cobrando igual, sin caja"],["Historial","Se conserva"]],S.cfg.cash?"ok":"warn")}
+  toast(e.target.checked?"Reserva en línea activada":"Reserva en línea apagada");render()}
+});
+document.addEventListener("click",e=>{
+ if(e.target.closest(".splash")){clearTimeout(window.__sp);S.splash=false;return render()}
+ const b=e.target.closest("button,[data-scrim]"); if(!b)return;
+ const d=b.dataset;
+ if(d.scrim!==undefined&&e.target===b){S.sheet=null;return render()}
+ if(b.matches("[data-scrim]"))return;
+ if(d.splash!==undefined){S.splash=true;render();const ap=document.querySelector("#app");if(ap)ap.scrollIntoView({block:"start"});clearTimeout(window.__sp);window.__sp=setTimeout(()=>{S.splash=false;render()},SPLASH_MS());return}
+ if(d.confback!==undefined){S.sheet=S.sheet.back||null;return render()}
+ if(d.act&&(d.act==="Cancelada"||d.act==="No llegó")&&!d.sure){const a=appts.find(x=>x.id===d.id),c=d.act==="Cancelada";S.sheet={type:"confirm",title:c?"¿Cancelar esta cita?":"¿Marcar que no llegó?",text:`<b>${esc(C(a.cus).n)}</b><div class="muted small">${V(a.svc).n} · hoy ${hm(a.start)} · ${P(a.pro).n}</div>`,note:c?"El horario queda libre para otro cliente. Si te equivocas, toca agendarla de nuevo.":"Queda en el historial del cliente como inasistencia.",yes:c?"Sí, cancelar cita":"Sí, no llegó",attrs:`data-act="${d.act}" data-id="${a.id}" data-sure="1"`,back:{type:"appt",id:a.id}};return render()}
+ if(d.ccancel&&!d.sure){const m=myAppts[+d.ccancel];S.sheet={type:"confirm",title:"¿Cancelar tu cita?",text:`<b>${V(m.svc).n}</b><div class="muted small">${m.day} · ${m.time}</div>`,note:"Es sin costo. Si te arrepientes, tendrás que reservar de nuevo y el horario puede ya no estar.",yes:"Sí, cancelar mi cita",attrs:`data-ccancel="${d.ccancel}" data-sure="1"`,back:null};return render()}
+ if(d.uedit){S.sheet={type:"uedit",i:+d.uedit};return render()}
+ if(d.uoff&&!d.sure){const u=USERS[+d.uoff];if(u.off){u.off=false;S.sheet=null;return ok("Usuario activado",[["Nombre",esc(u.n)],["Siguiente","Ya puede entrar con su correo"]])}S.sheet={type:"confirm",title:"¿Desactivar a "+esc(u.n)+"?",text:`<b>${esc(u.n)}</b><div class="muted small">${u.r} · ${esc(u.m)}</div>`,note:"Se le cierra la sesión al instante y ya no puede entrar. Sus citas y ventas quedan guardadas.",yes:"Sí, desactivar",attrs:`data-uoff="${d.uoff}" data-sure="1"`,back:{type:"uedit",i:+d.uoff}};return render()}
+ if(d.uoff&&d.sure){const u=USERS[+d.uoff];u.off=true;S.sheet=null;return ok("Usuario desactivado",[["Nombre",esc(u.n)],["Sesión","Cerrada"]],"warn")}
+ if(d.uesave){const i=+d.uesave,u=USERS[i],n=$("#ue-n").value.trim(),m=$("#ue-m").value.trim().toLowerCase(),r=u.r==="Dueño"?"Dueño":$("#ue-r").value;
+  const err=n.length<2?"Escribe el nombre.":!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)?"El correo no es válido.":USERS.some((x,j)=>j!==i&&x.m===m)?"Ese correo ya lo usa otra persona.":"";
+  if(err){S.sheet.err=err;return render()}
+  const pid=PRO_OF[u.n],all=$("#ue-all");if(all&&pid)S.allAg[pid]=all.checked;
+  const mailCh=m!==u.m;if(pid&&n!==u.n){PRO_OF[n]=pid;delete PRO_OF[u.n]}Object.assign(u,{n,m,r});S.sheet=null;
+  return ok("Cambios guardados",[["Nombre",esc(n)],["Rol",r],...(mailCh?[["Correo","Le enviamos un correo para confirmarlo"]]:[]),...(all&&pid?[["Agendas",all.checked?"Gestiona todas":"Solo la suya"]]:[])])}
+ if(d.plan){S.plan=d.plan;return render()}
+ if(d.pay){S.pay=d.pay;return render()}
+ if(d.plans!==undefined){S.sheet={type:"plans"};return render()}
+ if(d.pickplan){const v=PLANS[d.pickplan],up=PLANS[d.pickplan].p>PLANS[S.plan].p;S.plan=d.pickplan;S.sheet=null;return ok(up?"Subiste de plan":"Cambiaste de plan",[["Plan nuevo",v.n],["Precio",money(v.p)+" al mes"],["Aplica desde","Tu próximo cobro"]])}
+ if(d.paynow!==undefined){const v=PLANS[S.plan];S.pay="aldia";return ok("Pago recibido",[["Plan",v.n],["Valor",money(v.p)],["Medio","Nequi •••• 4321"],["Próximo cobro","15 nov"],["Estado","Al día"]])}
+ if(d.paymethod!==undefined)return ok("Cambiar medio de pago",[["Opciones","Tarjeta o Nequi con débito automático, o PSE con enlace cada mes"],["Se hace en","Wompi, de forma segura"]]);
+ if(d.role){S.role=d.role;S.view=d.role==="cliente"?"negocio":"inicio";S.sheet=null;S.saleId=null;S.cusId=null;return render()}
+ if(d.dev){S.dev=d.dev;return render()}
+ if(d.pal){S.pal=d.pal;return render()}
+ if(d.typo){S.typo=d.typo;return render()}
+ if(d.sq){S.square=d.sq==="1";return render()}
+ if(d.mode){S.mode=d.mode;S.theme=d.mode;return render()}
+ if(d.themeset){setTheme(d.themeset);return toast(d.themeset==="system"?"Tema: como tu celular":d.themeset==="dark"?"Tema oscuro":"Tema claro")}
+ if(d.micuenta!==undefined){S.view=S.role==="cliente"?"cuenta":"ajustes";S.sheet=null;return render()}
+ if(d.pwd!==undefined)return ok("Revisa tu correo",[["Te enviamos","Un código para crear la contraseña nueva"],["Vence en","15 minutos"]]);
+ if(d.unbrand!==undefined){S.logo=null;S.cover=null;return ok("Imágenes quitadas",[["Logo","Iniciales EB"],["Portada","Color del negocio"]],"warn")}
+ if(d.hor){S.sheet={type:"hor",id:d.hor};return render()}
+ if(d.horsave){const p=pros.find(x=>x.id===d.horsave),dd=[...document.querySelectorAll("[data-hd]")].map(i=>i.checked?1:0),f=$("#h-f").value,t=$("#h-t").value,l=$("#h-l").checked,lf=$("#h-lf").value,lt=$("#h-lt").value;
+  const err=!dd.some(Boolean)?"Elige al menos un día.":!(f<t)?"La hora de salida debe ser después de la de entrada.":l&&!(f<=lf&&lf<lt&&lt<=t)?"El almuerzo debe quedar dentro del horario.":"";
+  if(err){S.sheet.err=err;return render()}
+  p.h={d:dd,from:f,to:t,lunch:l,lf,lt};return ok("Horario guardado",[["Profesional",p.n],["Horario",hText(p)]])}
+ if(d.adduser!==undefined){S.sheet={type:"user"};return render()}
+ if(d.usersave!==undefined){const n=$("#u-n").value.trim(),m=$("#u-m").value.trim(),r=$("#u-r").value;Object.assign(S.sheet,{n,m,r});
+  const err=n.length<2?"Escribe el nombre.":!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m)?"El correo no es válido.":USERS.some(u=>u.m===m.toLowerCase())?"Ese correo ya tiene acceso.":"";
+  if(err){S.sheet.err=err;return render()}
+  USERS.push({n,r,m:m.toLowerCase()});return ok("Usuario agregado",[["Nombre",esc(n)],["Correo",esc(m)],["Rol",r],["Siguiente","Le enviamos la invitación"]])}
+ if(d.view){if(d.view==="mas"){S.sheet={type:"mas"};return render()}S.view=d.view;S.sheet=null;S.saleId=null;S.cusId=null;if(d.view==="reservar"&&S.client.book?.done)S.client.book=null;return render()}
+ if(d.close!==undefined){S.sheet=null;return render()}
+ if(d.bell!==undefined){S.sheet={type:"bell"};return render()}
+ if(d.logout!==undefined){S.role="entrada";S.sheet=null;return render()}
+ if(d.login!==undefined){S.role="recepcion";S.view="inicio";return render()}
+ if(d.forgot!==undefined){S.forgot=true;return render()}
+ if(d.go==="wiz"){S.wiz={step:d.cus?2:1,cus:d.cus||null};S.sheet={type:"wiz"};return render()}
+ if(d.go==="newcus"){S.sheet={type:"newcus"};return render()}
+ if(d.go==="direct"){S.sheet={type:"direct"};return render()}
+ if(d.go==="cobrar"){S.view="cobrar";return render()}
+ if(d.go==="reservar"){S.view="reservar";S.client.book=null;return render()}
+ if(d.appt){S.sheet={type:"appt",id:d.appt};return render()}
+ if(d.gp){S.gridPro=d.gp;return render()}
+ if(d.act){
+  if(d.act.startsWith("cobrar:")){S.saleId=d.act.split(":")[1];S.view="cobrar";S.sheet=null;return render()}
+  const a=appts.find(x=>x.id===d.id);a.st=d.act;
+  if(d.act==="Completada"&&!sales.some(s=>s.appt===a.id)){const sid="v"+Date.now();sales.push({id:sid,appt:a.id,cus:a.cus,items:[{n:V(a.svc).n,p:V(a.svc).p}],pays:[],st:"Por cobrar",at:hm(NOW+5),by:""});return ok("Cita completada",[["Cliente",esc(C(a.cus).n)],["Servicio",V(a.svc).n],["Profesional",P(a.pro).n],["Queda por cobrar",money(V(a.svc).p)]],"ok",`<button class="btn block" data-act="cobrar:${sid}" data-id="${a.id}">Cobrar ahora</button>`)}
+  const T={Confirmada:["Cita confirmada","ok"],"En curso":["Cita iniciada","ok"],Cancelada:["Cita cancelada","warn"],"No llegó":["Marcada como no llegó","err"]}[d.act]||["Listo","ok"];
+  return ok(T[0],[["Cliente",esc(C(a.cus).n)],["Servicio",V(a.svc).n],["Hora","Hoy "+hm(a.start)],["Profesional",P(a.pro).n]],T[1]);
+ }
+ if(d.wcus){S.wiz.cus=d.wcus;S.wiz.step=2;return render()}
+ if(d.wsvc){S.wiz.svc=d.wsvc;S.wiz.pro=null;return render()}
+ if(d.wpro){S.wiz.pro=d.wpro;S.wiz.step=3;return render()}
+ if(d.wback!==undefined){S.wiz.step--;return render()}
+ if(d.wtime){const w=S.wiz;appts.push({id:"a"+Date.now(),pro:w.pro,cus:w.cus,svc:w.svc,start:+d.wtime,st:"Confirmada"});S.wiz=null;return ok("Cita agendada",[["Cliente",esc(C(w.cus).n)],["Servicio",V(w.svc).n],["Hora","Hoy "+hm(+d.wtime)],["Profesional",P(w.pro).n],["Precio",money(V(w.svc).p)]])}
+ if(d.addmail){const c=customers.find(x=>x.id===d.addmail),em=$("#ce-"+c.id).value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return ok("Correo no válido",[["Escribiste",esc(em)||"(vacío)"]],"err");
+  if(customers.some(x=>x.e===em))return ok("Ese correo ya existe",[["Es de",esc(customers.find(x=>x.e===em).n)],["Qué hacer","Revisa si es el mismo cliente"]],"warn");
+  c.e=em;return ok("Correo guardado",[["Cliente",esc(c.n)],["Correo",esc(em)],["Ahora","Si reserva en línea, usa esta ficha"]])}
+ if(d.savecus!==undefined){const n=$("#nc-n").value.trim();if(!n){$("#nc-n").focus();return}const em=$("#nc-no").checked?"":$("#nc-e").value.trim().toLowerCase(),ph=$("#nc-t").value.trim();
+  if(digits(ph).length<7){S.ncErr="Escribe el celular.";render();return}
+  const dup=customers.find(x=>digits(x.t)===digits(ph));if(dup){S.ncErr="Ese celular ya es de "+esc(dup.n)+". Búscalo en Clientes.";render();return}
+  if(!em&&!$("#nc-no").checked){S.ncErr="Escribe el correo o marca \"No tiene correo\".";render();return}
+  if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){S.ncErr="El correo no es válido.";render();return}
+  if(em&&customers.some(x=>x.e===em)){S.ncErr="Ese correo ya es de otro cliente. Búscalo en Clientes.";render();return}
+  S.ncErr=null;const c={id:"c"+Date.now(),n,t:$("#nc-t").value||"Sin teléfono",e:em,ns:0};customers.unshift(c);if(S.wiz){S.wiz.cus=c.id;S.wiz.step=2;S.sheet={type:"wiz"};return toast("Cliente creado")}return ok("Cliente creado",[["Nombre",esc(c.n)],["Teléfono",esc(c.t)],["Correo",em?esc(em)+" · lo reconocemos si reserva en línea":"No tiene correo"],["Recordatorios",$("#nc-ok").checked?"Autorizados":"No autorizados"]])}
+ if(d.cus&&!d.go){S.cusId=d.cus;return render()}
+ if(d.back==="cus"){S.cusId=null;return render()}
+ if(d.back==="sale"){S.saleId=null;S.cb=null;return render()}
+ if(d.sale){S.saleId=d.sale;S.cb=null;return render()}
+ if(d.addp){const s=sales.find(x=>x.id===S.saleId),p=products.find(x=>x.id===d.addp);s.items.push({n:p.n,p:p.p});return render()}
+ if(d.rmi){sales.find(x=>x.id===S.saleId).items.splice(+d.rmi,1);return render()}
+ if(d.pm){const s=sales.find(x=>x.id===S.saleId),rest=total(s)-paid(s);let a=parseInt(($("#pay-amt").value||"").replace(/\D/g,""))||0;if(a<=0){$("#pay-amt").focus();return}a=Math.min(a,rest);s.pays.push({m:d.pm,a});return toast(`${money(a)} con ${d.pm}`)}
+ if(d.undo){sales.find(x=>x.id===S.saleId).pays.splice(+d.undo,1);return toast("Pago quitado. Toca el medio correcto")}
+ if(d.void){sales.find(x=>x.id===S.saleId).pays.splice(+d.void,1);return toast("Pago anulado con motivo registrado")}
+ if(d.confirm!==undefined){const s=sales.find(x=>x.id===S.saleId);s.st="Pagada";s.at=hm(NOW+8);s.by=ROLES[S.role];S.sheet={type:"done",id:s.id};return render()}
+ if(d.dcus){const s={id:"v"+Date.now(),appt:null,cus:d.dcus,items:[],pays:[],st:"Por cobrar",at:hm(NOW),by:""};sales.push(s);S.saleId=s.id;S.sheet=null;return render()}
+ if(d.cm){const a=parseInt(($("#cm-amt").value||"").replace(/\D/g,""))||0,r=$("#cm-r").value.trim();if(!a||!r){(!a?$("#cm-amt"):$("#cm-r")).focus();return}cash.push({t:d.cm,a,r,at:hm(NOW)});return ok(`${d.cm} de efectivo registrada`,[["Monto",money(a)],["Motivo",esc(r)],["Hora",hm(NOW)],["Registró",ROLES[S.role]]],d.cm==="Entrada"?"ok":"warn")}
+ if(d.count!==undefined){const a=parseInt(($("#cnt").value||"").replace(/\D/g,""));if(isNaN(a)){$("#cnt").focus();return}S.countDone=a;const diff=a-expected();return ok("Arqueo registrado",[["Contado",money(a)],["Hora",hm(NOW)]].concat(isAdmin()?[["Esperado",money(expected())],["Diferencia",money(diff)]]:[["Diferencia","La ve el administrador"]]),isAdmin()&&diff!==0?"warn":"ok")}
+ if(d.special!==undefined){const k=$("#sp-k").value;const sp={pro:$("#sp-pro").value,d:$("#sp-d").value,k,h:k==="Horario distinto"?"9:00 a 13:00":""};specials.push(sp);return ok("Día especial guardado",[["Profesional",P(sp.pro).n],["Día",sp.d],["Tipo",k+(sp.h?" · "+sp.h:"")],["Efecto",k==="Horario distinto"?"Solo se ofrecen esas horas":"Sus horas quedan bloqueadas"]])}
+ if(d.notice){const n=notices[+d.notice],[k,v]=n.go.split(":");S.sheet=null;S.saleId=null;S.cusId=null;if(k==="cus"){S.view="clientes";S.cusId=v}if(k==="sale"){S.view="cobrar";S.saleId=v}if(k==="view")S.view=v;notices.splice(+d.notice,1);return render()}
+ if(d.nread){notices.splice(+d.nread,1);return toast("Marcado como resuelto")}
+ if(d.sec){const was=S.open.has(d.sec);S.open.clear();if(!was)S.open.add(d.sec);return render()} /* D268: un solo desplegable abierto */
+ if(d.fake)return toast({logo:"Abriría el selector de imagen",portada:"Abriría el selector de imagen",horario:"Abriría el horario semanal",usuario:"Abriría el formulario de usuario"}[d.fake]);
+ if(d.svcform!==undefined){S.svcForm=!S.svcForm;return render()}
+ if(d.newsvc!==undefined){const n=$("#ns-n").value.trim(),p=parseInt(($("#ns-p").value||"").replace(/\D/g,""));if(!n){$("#ns-n").focus();return}if(!p){$("#ns-p").focus();return}services.push({id:"s"+Date.now(),n,m:+$("#ns-m").value,p,on:true});S.svcForm=false;const ns=services.at(-1);return ok("Servicio creado",[["Nombre",esc(ns.n)],["Duración",ns.m+" min"],["Precio",money(ns.p)],["Aparece en","Agenda y reserva en línea"]])}
+ if(d.toggle){const s=V(d.toggle);s.on=!s.on;return toast(s.on?"Servicio activo":"Servicio oculto para nuevas reservas")}
+ // cliente
+ if(d.maps!==undefined){open(mapsUrl(),"_blank","noopener");return}
+ if(d.csvc){S.view="reservar";S.client.book={step:2,svc:d.csvc};return render()}
+ if(d.bsvc){S.client.book={step:2,svc:d.bsvc};return render()}
+ if(d.bpro){Object.assign(S.client.book,{pro:d.bpro,step:3,day:0});return render()}
+ if(d.bday){S.client.book.day=+d.bday;return render()}
+ if(d.btime){Object.assign(S.client.book,{time:+d.btime,step:4});return render()}
+ if(d.bback!==undefined){S.client.book.step--;return render()}
+ if(d.bconfirm!==undefined){const b=S.client.book;myAppts.unshift({svc:b.svc,pro:b.pro==="any"?"any":b.pro,proName:b.proName,day:DAYS[b.day||0],time:hm(b.time),st:"Confirmada"});b.done=true;S.view="miscitas";return ok("¡Tu cita quedó reservada!",[["Servicio",V(b.svc).n],["Día",DAYS[b.day||0]],["Hora",hm(b.time)],["Con",b.proName],["Precio",money(V(b.svc).p)+", pagas en el local"],["Cancelar gratis","Hasta 2 horas antes"]])}
+ if(d.csend!==undefined){const m=$("#ce").value.trim();if(!/.+@.+\..+/.test(m)){$("#ce").focus();return}S.client.entry={step:2,mail:m};return render()}
+ if(d.cverify!==undefined){if($("#cc").value!=="482913"){toast("Ese código no coincide. Usa 482913");return}const e=S.client.entry,m=e.mail.toLowerCase(),f=customers.find(x=>x.e===m&&!x.acc);
+  if(f)return linkCus(f,"correo");
+  e.step=3;e.err=null;return render()}
+ if(d.csms!==undefined){const e=S.client.entry;e.phone=$("#cp").value.trim();if(digits(e.phone).length<7){$("#cp").focus();return toast("Escribe tu celular")}e.step="sms";e.err=null;return render()}
+ if(d.csmsok!==undefined){const e=S.client.entry,f=customers.find(x=>digits(x.t)===digits(e.phone)&&!x.acc);
+  if($("#cs").value!=="735104"||!f){e.err="No pudimos verificar ese código. Revisa el SMS o sigue como cliente nuevo.";return render()}
+  return linkCus(f,"celular")}
+ if(d.cxedit){S.client.edit={k:d.cxedit,step:1};return render()}
+ if(d.cxno!==undefined){S.client.edit=null;return render()}
+ if(d.cxsend!==undefined){const ed=S.client.edit,v=$("#cx").value.trim();ed.v=v;
+  const bad=ed.k==="mail"?!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v):digits(v).length<7;
+  if(bad){ed.err=ed.k==="mail"?"El correo no es válido.":"El celular no es válido.";return render()}
+  if(ed.k==="phone"&&customers.some(x=>digits(x.t)===digits(v))){ed.err="No pudimos usar ese celular. Si crees que es un error, escríbele al negocio.";return render()}
+  ed.step=2;ed.err=null;return render()}
+ if(d.cxok!==undefined){const ed=S.client.edit;if($("#cy").value!=="482913"){ed.err="Ese código no coincide.";return render()}
+  S.client[ed.k]=ed.v;S.client.edit=null;return ok(ed.k==="mail"?"Correo actualizado":"Celular actualizado",[[ed.k==="mail"?"Correo nuevo":"Celular nuevo",esc(ed.v)],["Verificado","Con código"]])}
+ if(d.cnew!==undefined){S.client.entry.step=3;S.client.entry.err=null;return render()}
+ if(d.creg!==undefined){if(!$("#ck1").checked){toast("Para continuar, acepta la política de datos");return}const ph=$("#ct").value.trim(),e=S.client.entry;
+  if(digits(ph).length<7){$("#ct").focus();return toast("Escribe tu celular")}
+  // D257 piloto sin SMS: celular repetido = ficha "por revisar" + aviso al personal; al cliente no se le dice nada (D148)
+  S.client.phone=ph;S.client.mail=e.mail;S.client.name=$("#cn").value.trim()||"Cliente nuevo";S.client.logged=true;return toast("Entraste. Bienvenido")}
+ if(d.ccancel){const m=myAppts[+d.ccancel];m.st="Cancelada";return ok("Cita cancelada",[["Servicio",V(m.svc).n],["Día",m.day+" · "+m.time],["Costo","Sin costo"]],"warn")}
+ if(d.clogout!==undefined){S.client={logged:false};return toast("Cerraste sesión")}
+ if(d.cdel!==undefined){S.client.del=true;return render()}
+ if(d.cdelno!==undefined){S.client.del=false;return render()}
+ if(d.cdelok!==undefined){S.client={logged:false};S.view="negocio";return toast("Tu cuenta fue eliminada")}
+});
+render();window.__sp=setTimeout(()=>{S.splash=false;render()},SPLASH_MS());
+})();
+</script>
+
+<script>
+/* Cada vez que la demo entra a la pantalla se reproduce la presentación.
+   Espera a que el scroll se detenga (si no, el render corta el desplazamiento suave)
+   y anula el scrollIntoView del botón durante ese clic para no mover la página. */
+(()=>{const demo=document.getElementById("demo");if(!demo||!("IntersectionObserver" in window))return;
+let inside=false,played=false,t=0;
+const play=()=>{if(!inside||played)return;played=true;const b=document.querySelector("[data-splash]");if(!b)return;
+  const siv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){};try{b.click()}finally{Element.prototype.scrollIntoView=siv}};
+const wait=()=>{clearTimeout(t);t=setTimeout(play,180)};
+addEventListener("scroll",()=>{if(inside&&!played)wait()},{passive:true});
+new IntersectionObserver(es=>{for(const e of es){if(e.isIntersecting){if(!inside){inside=true;played=false;wait()}}else{inside=false;played=false;clearTimeout(t)}}},{rootMargin:"0px 0px -50% 0px",threshold:0}).observe(demo)})();
+</script>
+</body>
+</html>
