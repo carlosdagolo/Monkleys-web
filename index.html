@@ -251,6 +251,10 @@ html:not(.js) .route + .route { margin-top: 72px; }
 .soon h2 { font-size: clamp(1.8rem, 6.6vw, 3rem); font-weight: 700; max-width: 18ch; }
 .soon p { margin-top: 14px; color: #C8D3E6; max-width: 52ch; }
 .soon .btn { margin-top: 22px; }
+.soon .btn + .btn { margin-top: 12px; }
+@media (min-width: 560px) { .soon .btn + .btn { margin-left: 10px; } }
+.btn-ghost { background: transparent; color: var(--hueso); box-shadow: inset 0 0 0 1.5px rgba(201, 154, 69, 0.75); }
+.btn-ghost:hover { filter: none; background: rgba(201, 154, 69, 0.12); }
 .soon .note { font-size: 0.95rem; color: #B4C2D8; margin-top: 12px; }
 .soon .shot { border-radius: 18px; background: rgba(15, 22, 34, 0.55); border: 1px solid rgba(244, 241, 234, 0.1); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8); padding: 14px; }
 .soon .shot svg { width: 100%; height: auto; display: block; }
@@ -608,6 +612,10 @@ html:not(.js) .route + .route { margin-top: 72px; }
         <a class="btn" href="https://wa.me/573165743934?text=Hola%20Monkleys%2C%20quiero%20enterarme%20primero%20del%20software%20para%20negocios" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5v-8A2.5 2.5 0 0 1 6.5 3z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
           Quiero enterarme primero
+        </a>
+        <a class="btn btn-ghost" href="demo/">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M11 18.5h2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          Ver la demo
         </a>
         <p class="note">Está en desarrollo. Te avisamos cuando puedas probarlo.</p>
       </div>
